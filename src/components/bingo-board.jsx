@@ -22,14 +22,14 @@ const BingoBoard = () => {
     const checkIfWon = (index) => {
         let mod = index % 5;
         let sum;
-        
+
         // col sum
         sum = 0;
         for (let i = 0; i < 5; i++) {
             sum += marked.at(i * 5 + mod - 1); // index - 1
         }
         if (sum === 5) {
-            alert("won");
+            alert("won - col");
             return true;
         }
 
@@ -40,12 +40,34 @@ const BingoBoard = () => {
             sum += marked.at(i);
         }
         if (sum === 5) {
-            alert("won");
+            alert("won - row");
+            return true;
+        }
+
+        // main diagonal sum
+        sum = 0;
+        for(let i=0; i<5;i++){
+            sum += marked.at(i*5+i);
+        }
+        if (sum === 5) {
+            alert("won - main diagonal");
+            return true;
+        }
+
+        // 2nd diagonal sum
+        sum = 0;
+        for(let i=1; i<=5;i++){
+            sum += marked.at(i*4);
+        }
+        if (sum === 5) {
+            alert("won - 2nd diagonal");
             return true;
         }
     };
 
     useEffect(() => {
+        if(lastChecked === null) return;
+        
         checkIfWon(lastChecked);
     }, [marked]);
 
