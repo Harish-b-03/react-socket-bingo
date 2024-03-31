@@ -4,7 +4,6 @@ import { socket } from "./socket";
 
 const App = () => {
     const [connected, setConnected] = useState(false);
-    const [shuffledData, setShuffledData] = useState(null);
 
     const onConnect = () => {
         setConnected(true);
@@ -16,13 +15,12 @@ const App = () => {
 
     useEffect(() => {
         socket.on("connect", onConnect);
-        socket.on("shuffleData", (data) => setShuffledData(data));
         socket.on("message", onMessage);
     }, []);
 
-    return connected && shuffledData ? (
+    return connected? (
         <div className="h-screen w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
-            <BingoBoard shuffledData={shuffledData} connected={connected}/>
+            <BingoBoard/>
         </div>
     ) : (
         <div className="h-screen w-screen overflow-auto overflow-x-hidden flex justify-center items-center">

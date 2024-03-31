@@ -1,9 +1,25 @@
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
 
-const BingoBoard = ({ shuffledData, connected }) => {
+const shuffle = () => {
+    const array = [...Array(26).keys()].slice(1);
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return [
+        array.slice(0, 5),
+        array.slice(5, 10),
+        array.slice(10, 15),
+        array.slice(15, 20),
+        array.slice(20, 25),
+    ];
+};
+
+const BingoBoard = () => {
     const [marked, setMarked] = useState([...Array(25).keys()].fill(0));
     const [lastChecked, setLastChecked] = useState(null);
+    const [shuffledData, setShuffledData] = useState(shuffle());
 
     const sendWonMessage = () => {
         if (!socket.connected) return;
@@ -59,7 +75,7 @@ const BingoBoard = ({ shuffledData, connected }) => {
     };
 
     useEffect(() => {
-        if (lastChecked === null || !connected) return;
+        if (lastChecked === null || !socket.connected) return;
 
         checkIfWon(lastChecked);
     }, [marked]);
@@ -117,12 +133,20 @@ const BingoBoard = ({ shuffledData, connected }) => {
                     </div>
                 ))}
             </div>
-            <button
-                onClick={() => setMarked([...Array(25).keys()].fill(0))}
-                className="m-3"
-            >
-                Reset
-            </button>
+            <div className="w-[300px] mt-3 flex justify-evenly items-center">
+                <button
+                    onClick={() => setMarked([...Array(25).keys()].fill(0))}
+                    className="m-3"
+                >
+                    Reset
+                </button>
+                <button
+                    onClick={() => setShuffledData(shuffle())}
+                    className="m-3"
+                >
+                    Shuffle
+                </button>
+            </div>
         </div>
     );
 };
