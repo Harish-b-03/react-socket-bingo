@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
+import { socket } from "../socket";
 
-const BingoBoard = ({shuffledData}) => {
-    
+const BingoBoard = ({ shuffledData, connected }) => {
     const [marked, setMarked] = useState([...Array(25).keys()].fill(0));
     const [lastChecked, setLastChecked] = useState(null);
+
+    const sendWonMessage = () => {
+        if (!socket.connected) return;
+
+        socket.emit("iWonMessage");
+    };
 
     const checkIfWon = (index) => {
         let mod = index % 5;
@@ -26,14 +32,15 @@ const BingoBoard = ({shuffledData}) => {
             sum += marked.at(i);
         }
         if (sum === 5) {
+            sendWonMessage();
             alert("won - row");
             return true;
         }
 
         // main diagonal sum
         sum = 0;
-        for(let i=0; i<5;i++){
-            sum += marked.at(i*5+i);
+        for (let i = 0; i < 5; i++) {
+            sum += marked.at(i * 5 + i);
         }
         if (sum === 5) {
             alert("won - main diagonal");
@@ -42,8 +49,8 @@ const BingoBoard = ({shuffledData}) => {
 
         // 2nd diagonal sum
         sum = 0;
-        for(let i=1; i<=5;i++){
-            sum += marked.at(i*4);
+        for (let i = 1; i <= 5; i++) {
+            sum += marked.at(i * 4);
         }
         if (sum === 5) {
             alert("won - 2nd diagonal");
@@ -52,8 +59,8 @@ const BingoBoard = ({shuffledData}) => {
     };
 
     useEffect(() => {
-        if(lastChecked === null) return;
-        
+        if (lastChecked === null || !connected) return;
+
         checkIfWon(lastChecked);
     }, [marked]);
 

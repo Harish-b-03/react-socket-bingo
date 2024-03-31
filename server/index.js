@@ -10,7 +10,7 @@ app.use(cors());
 let shuffledData = null;
 
 const getShuffledData = () => {
-  const array = [...Array(26).keys()].slice(1);
+    const array = [...Array(26).keys()].slice(1);
 
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -36,11 +36,16 @@ socketIO.on("connection", (socket) => {
     // console.log(`⚡: ${socket.id} user just connected!`);
 
     socket.join("room1");
-    if(shuffledData == null){
-      shuffledData = getShuffledData();
+    if (shuffledData == null) {
+        shuffledData = getShuffledData();
     }
     socket.emit("shuffleData", shuffledData);
     socket.broadcast.to("room1").emit("message", `${socket.id} joined`);
+
+    socket.on("iWonMessage", () => {
+      socket.emit("message", "You Win");
+      socket.broadcast.to("room1").emit("message", `${socket.id} won`);
+    });
 
     socket.on("disconnect", () => {
         console.log("🔥: A user disconnected");

@@ -8,24 +8,23 @@ const App = () => {
 
     const onConnect = () => {
         setConnected(true);
-    }
+    };
 
     const onMessage = (message) => {
-        alert(message)
-    }
-    
-    useEffect(() => {
-      socket.on("connect", onConnect)
-      socket.on("shuffleData", (data) => setShuffledData(data))
-      socket.on("message", onMessage)
-    }, [])
-    
+        alert(message);
+    };
 
-    return (connected && shuffledData?
+    useEffect(() => {
+        socket.on("connect", onConnect);
+        socket.on("shuffleData", (data) => setShuffledData(data));
+        socket.on("message", onMessage);
+    }, []);
+
+    return connected && shuffledData ? (
         <div className="h-screen w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
-            <BingoBoard shuffledData={shuffledData}/>
+            <BingoBoard shuffledData={shuffledData} connected={connected}/>
         </div>
-        :
+    ) : (
         <div className="h-screen w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
             Connecting to the server...
         </div>
