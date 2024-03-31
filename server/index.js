@@ -29,6 +29,12 @@ socketIO.on("connection", (socket) => {
     });
 });
 
+app.get('/api', (req, res) => {
+    res.json({
+      message: 'Hello! Server is working',
+    });
+  });
+
 http.listen(PORT, () => {
     console.log(`Server listening on ${PORT}`);
 });
