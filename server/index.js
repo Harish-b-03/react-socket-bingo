@@ -24,6 +24,11 @@ socketIO.on("connection", (socket) => {
       socket.broadcast.to("room1").emit("message", `${socket.id} won`);
     });
 
+    socket.on("mark", (markedNumber) => {
+      socket.emit("message", `marked ${markedNumber}`);
+      socket.broadcast.to("room1").emit("reflectMark", markedNumber);
+    })
+
     socket.on("disconnect", () => {
         console.log("🔥: A user disconnected");
     });

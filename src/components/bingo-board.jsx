@@ -28,6 +28,7 @@ const BingoBoard = () => {
     };
 
     const checkIfWon = (index) => {
+        index += 1; // converting 0-based index to 1-based index
         let mod = index % 5;
         let sum;
 
@@ -75,12 +76,40 @@ const BingoBoard = () => {
     };
 
     useEffect(() => {
+      socket.on("reflectMark", (markedNumber) => {
+        let markedNumberIndex = -1;
+        for(let i=0; i<5*5; i++){
+            if(shuffledData[Math.floor(i/5)][i%5] === markedNumber){
+                markedNumberIndex = i;
+                break;
+            }
+        }
+
+        if(markedNumberIndex === -1) {
+            alert(`Marked number (${markedNumber}) is not present in your bingo board`);
+        } else{
+            setLastChecked(markedNumberIndex);
+            mark(markedNumberIndex, true);
+        }
+      })
+    }, [])
+    
+
+    useEffect(() => {
         if (lastChecked === null || !socket.connected) return;
 
         checkIfWon(lastChecked);
     }, [marked]);
 
-    const mark = (index) => {
+    const mark = (index, markRequestFromServer = false) => {
+        if(!socket.connected) return;
+        
+        if(!markRequestFromServer){
+            // if player marks a number then send it to other players.
+            // if other player is marking a number then don't send the same to other players again 
+            socket.emit("mark", shuffledData[Math.floor(index/5)][index%5]);
+        }
+
         setMarked((prev) => {
             if (index === 0) {
                 return [1, ...prev.slice(1)];
@@ -118,7 +147,7 @@ const BingoBoard = () => {
                                 : "hover:bg-slate-100"
                         }`}
                         onClick={() => {
-                            setLastChecked(index + 1);
+                            setLastChecked(index);
                             mark(index);
                         }}
                     >
