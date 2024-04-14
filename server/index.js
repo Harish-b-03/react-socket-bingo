@@ -15,7 +15,6 @@ const socketIO = require("socket.io")(http, {
 
 socketIO.on("connection", (socket) => {
     // console.log(`⚡: ${socket.id} user just connected!`);
-
     socket.join("room1");
     socket.broadcast.to("room1").emit("message", `${socket.id} joined`);
 
@@ -26,7 +25,7 @@ socketIO.on("connection", (socket) => {
 
     socket.on("mark", (markedNumber) => {
       socket.emit("message", `marked ${markedNumber}`);
-      socket.broadcast.to("room1").emit("reflectMark", markedNumber);
+      socket.broadcast.to("room1").emit("reflectMark", {markedNumber: markedNumber, userName: socket.id});
     })
 
     socket.on("disconnect", () => {

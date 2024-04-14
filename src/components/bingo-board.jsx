@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
+import { toast } from "react-toastify";
 
 const shuffle = () => {
     const array = [...Array(26).keys()].slice(1);
@@ -38,7 +39,7 @@ const BingoBoard = () => {
             sum += marked.at(i * 5 + mod - 1); // index - 1
         }
         if (sum === 5) {
-            alert("won - col");
+            toast("won - col");
             return true;
         }
 
@@ -50,7 +51,7 @@ const BingoBoard = () => {
         }
         if (sum === 5) {
             sendWonMessage();
-            alert("won - row");
+            toast("won - row");
             return true;
         }
 
@@ -60,7 +61,7 @@ const BingoBoard = () => {
             sum += marked.at(i * 5 + i);
         }
         if (sum === 5) {
-            alert("won - main diagonal");
+            toast("won - main diagonal");
             return true;
         }
 
@@ -70,30 +71,38 @@ const BingoBoard = () => {
             sum += marked.at(i * 4);
         }
         if (sum === 5) {
-            alert("won - 2nd diagonal");
+            toast("won - 2nd diagonal");
             return true;
         }
     };
 
-    useEffect(() => {
-      socket.on("reflectMark", (markedNumber) => {
+    const onReflectMark = (data) => {
+        let markedNumber = data.markedNumber;
+        let userName = data.userName;
         let markedNumberIndex = -1;
-        for(let i=0; i<5*5; i++){
-            if(shuffledData[Math.floor(i/5)][i%5] === markedNumber){
+        for (let i = 0; i < 5 * 5; i++) {
+            if (shuffledData[Math.floor(i / 5)][i % 5] === markedNumber) {
                 markedNumberIndex = i;
                 break;
             }
         }
 
-        if(markedNumberIndex === -1) {
-            alert(`Marked number (${markedNumber}) is not present in your bingo board`);
-        } else{
+        if (markedNumberIndex === -1) {
+            toast(
+                `Marked number (${markedNumber}) is not present in your bingo board`
+            );
+        } else {
             setLastChecked(markedNumberIndex);
             mark(markedNumberIndex, true);
+            toast(`${userName} marked ${markedNumber}.`);
         }
-      })
-    }, [])
-    
+    };
+
+    useEffect(() => {
+        socket.on("reflectMark", onReflectMark);
+
+        return () => socket.off("reflectMark", onReflectMark);
+    }, []);
 
     useEffect(() => {
         if (lastChecked === null || !socket.connected) return;
@@ -102,12 +111,12 @@ const BingoBoard = () => {
     }, [marked]);
 
     const mark = (index, markRequestFromServer = false) => {
-        if(!socket.connected) return;
-        
-        if(!markRequestFromServer){
+        if (!socket.connected) return;
+
+        if (!markRequestFromServer) {
             // if player marks a number then send it to other players.
-            // if other player is marking a number then don't send the same to other players again 
-            socket.emit("mark", shuffledData[Math.floor(index/5)][index%5]);
+            // if other player is marking a number then don't send the same to other players again
+            socket.emit("mark", shuffledData[Math.floor(index / 5)][index % 5]);
         }
 
         setMarked((prev) => {
