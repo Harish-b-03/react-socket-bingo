@@ -17,10 +17,11 @@ const shuffle = () => {
     ];
 };
 
-const BingoBoard = () => {
+const BingoBoard = ({ user, setUser }) => {
     const [marked, setMarked] = useState([...Array(25).keys()].fill(0));
     const [lastChecked, setLastChecked] = useState(null);
     const [shuffledData, setShuffledData] = useState(shuffle());
+    const [gameStarted, setGameStarted] = useState(false);
 
     const sendWonMessage = () => {
         if (!socket.connected) return;
@@ -100,8 +101,33 @@ const BingoBoard = () => {
 
     useEffect(() => {
         socket.on("reflectMark", onReflectMark);
+        socket.on("readyConfirmed", (result) => {
+            if (result.success) {
+                setUser(result.data.user);
+                toast.success("Ready for the game");
+            } else {
+                toast.error(result.errorMessage);
+            }
+        });
 
-        return () => socket.off("reflectMark", onReflectMark);
+        socket.on("gameStarted", (result) => {
+            if (result.success) {
+                setGameStarted(true);
+                toast.success(
+                    result.startedBy === user.userId
+                        ? "Game Started"
+                        : result.notify
+                );
+            } else {
+                toast.error(result.errorMessage);
+            }
+        });
+
+        return () => {
+            socket.off("reflectMark", onReflectMark);
+            socket.off("readyConfirmed");
+            socket.off("gameStarted");
+        };
     }, []);
 
     useEffect(() => {
@@ -172,18 +198,43 @@ const BingoBoard = () => {
                 ))}
             </div>
             <div className="w-[300px] mt-3 flex justify-evenly items-center">
-                <button
-                    onClick={() => setMarked([...Array(25).keys()].fill(0))}
-                    className="m-3"
-                >
-                    Reset
-                </button>
-                <button
-                    onClick={() => setShuffledData(shuffle())}
-                    className="m-3"
-                >
-                    Shuffle
-                </button>
+                {gameStarted ? (
+                    <></>
+                ) : !gameStarted && user.readyToStart ? (
+                    <button
+                        onClick={() => {
+                            socket.emit("startGame");
+                        }}
+                        className="m-3 px-14 py-2 min-w-[120px] text-center text-white bg-violet-500 border border-violet-600 rounded-full active:text-violet-500 hover:bg-violet-600 focus:outline-none focus:ring"
+                    >
+                        Start
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            onClick={() =>
+                                setMarked([...Array(25).keys()].fill(0))
+                            }
+                            className="m-3"
+                        >
+                            Reset
+                        </button>
+                        <button
+                            onClick={() => {
+                                socket.emit("playerReadyToStart");
+                            }}
+                            className="m-3 px-6 py-2 min-w-[120px] text-center text-white bg-violet-500 border border-violet-600 rounded-full active:text-violet-500 hover:bg-violet-600 focus:outline-none focus:ring"
+                        >
+                            Ready
+                        </button>
+                        <button
+                            onClick={() => setShuffledData(shuffle())}
+                            className="m-3"
+                        >
+                            Shuffle
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );

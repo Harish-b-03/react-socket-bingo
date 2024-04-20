@@ -9,6 +9,10 @@ const {
     addUserToRoom,
     displayRooms,
     displayUsers,
+    playerReadyToStart,
+    getRoomIdBySocketId,
+    startGame,
+    getUserBySocketId,
 } = require("./util");
 
 app.use(cors());
@@ -41,17 +45,57 @@ socketIO.on("connection", (socket) => {
         socket.broadcast.to(roomId).emit("message", `${user.userName} joined`);
     });
 
+    socket.on("playerReadyToStart", () => {
+        let res = playerReadyToStart(socket.id);
+        if (res.success) {
+            socket.emit("readyConfirmed", res);
+            let resRoomId = getRoomIdBySocketId(socket.id);
+            socket.broadcast
+                .to(resRoomId.data.roomId)
+                .emit("message", `${res.data.user.userName} is ready`);
+        } else {
+            socket.emit("readyConfirmed", res);
+        }
+    });
+
+    socket.on("startGame", () => {
+        let res = startGame(socket.id);
+        if (res.success) {
+            let resRoomId = getRoomIdBySocketId(socket.id);
+            socket.nsp.to(resRoomId.data.roomId).emit("gameStarted", {
+                success: res.success,
+                startedBy: res.data.user.userId,
+                notify: `${res.data.user.userName} started the game`,
+            });
+        } else {
+            socket.emit("gameStarted", res);
+        }
+    });
+
     socket.on("iWonMessage", () => {
+        let resRoomId = getRoomIdBySocketId(socket.id);
+        if (!resRoomId.success) {
+            socket.emit("message", "Some error occured");
+        }
         socket.emit("message", "You Win");
-        socket.broadcast.to("room1").emit("message", `${socket.id} won`);
+        socket.broadcast
+            .to(resRoomId.data.roomId)
+            .emit("message", `${socket.id} won`);
     });
 
     socket.on("mark", (markedNumber) => {
+        let resRoomId = getRoomIdBySocketId(socket.id);
+        if (!resRoomId.success) {
+            socket.emit("message", "Some error occured");
+        }
         socket.emit("message", `marked ${markedNumber}`);
-        socket.broadcast.to("room1").emit("reflectMark", {
-            markedNumber: markedNumber,
-            userName: socket.id,
-        });
+        let resUser = getUserBySocketId(socket.id);
+        if (resUser.success) {
+            socket.broadcast.to(resRoomId.data.roomId).emit("reflectMark", {
+                markedNumber: markedNumber,
+                userName: resUser.data.user.userName,
+            });
+        }
     });
 
     socket.on("disconnect", () => {

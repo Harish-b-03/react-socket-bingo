@@ -17,17 +17,18 @@ const users = [
         userName: "bot",
         roomId: "",
         bingoBoard: [],
+        readyToStart: false,
     },
 ];
 
 const getRoomIndex = (roomId = null) => {
-    if (roomId === null) return;
+    if (roomId === null) return -1;
 
     return rooms.findIndex((room) => room.roomId === roomId);
 };
 
 const getUserIndex = (userId = null) => {
-    if (userId === null) return;
+    if (userId === null) return -1;
 
     return users.findIndex((user) => user.userId === userId);
 };
@@ -47,6 +48,7 @@ const addUser = ({
         userName,
         roomId,
         bingoBoard,
+        readyToStart: false,
     };
 
     users.push(newUser);
@@ -62,6 +64,7 @@ const updateUserName = ({ userId = null, newName = "" }) => {
     if (index === -1)
         return {
             status: 404,
+            success: false,
             errorCode: "userNotFound",
             errorMessage: "No user found.",
         };
@@ -79,6 +82,7 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
     if (userIndex === -1)
         return {
             status: 404,
+            success: false,
             errorCode: "userNotFound",
             errorMessage: "No user found.",
         };
@@ -90,7 +94,7 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
 
         rooms.push({
             roomId: roomId,
-            players: [users[userIndex]],
+            players: [],
             gameStarted: false,
         });
         users[userIndex].roomId = roomId;
@@ -129,6 +133,7 @@ const updateGameStatus = ({ roomId = null, gameStarted = true }) => {
     if (roomIndex === -1) {
         return {
             status: 404,
+            success: false,
             errorCode: "roomNotFound",
             errorMessage: "No room found.",
         };
@@ -154,6 +159,7 @@ const updateBoardUser = ({ userId = null, boardData = [] }) => {
     if (userIndex === -1)
         return {
             status: 404,
+            success: false,
             errorCode: "userNotFound",
             errorMessage: "No user found.",
         };
@@ -169,7 +175,7 @@ const updateBoardUser = ({ userId = null, boardData = [] }) => {
     };
 };
 
-const getRoomIdBySocketId = ({ socketId = null }) => {
+const getRoomIdBySocketId = (socketId = null) => {
     if (socketId === null) return;
 
     const index = users.findIndex((user) => user.socketId === socketId);
@@ -177,6 +183,7 @@ const getRoomIdBySocketId = ({ socketId = null }) => {
     if (index === -1) {
         return {
             status: 404,
+            success: false,
             errorCode: "userNotFound",
             errorMessage: "No user found.",
         };
@@ -190,6 +197,96 @@ const getRoomIdBySocketId = ({ socketId = null }) => {
         },
     };
 };
+
+const playerReadyToStart = (socketId = null) => {
+    if (socketId === null) return;
+
+    const userIndex = users.findIndex((user) => user.socketId === socketId);
+
+    if (userIndex === -1)
+        return {
+            status: 404,
+            success: false,
+            errorCode: "userNotFound",
+            errorMessage: "No user found.",
+        };
+
+    users[userIndex].readyToStart = true;
+
+    return {
+        status: 200,
+        success: true,
+        data: {
+            user: users[userIndex],
+        },
+    };
+};
+
+const startGame = (socketId = null) => {
+    let res = getRoomIdBySocketId(socketId);
+    
+    if(!res.success){
+        return res;
+    }
+
+    let currentRoomIndex = getRoomIndex(res.data.roomId);
+
+    if (currentRoomIndex !== -1) {
+        if (rooms[currentRoomIndex].players.length < 2) {
+            return {
+                status: 404,
+                success: false,
+                errorCode: "playerCountIs1",
+                errorMessage: "Number of players should be >= 2",
+            };
+        }
+
+        for(let i=0; i<rooms[currentRoomIndex].players.length; i++){
+            let userIndex = getUserIndex(rooms[currentRoomIndex].players[i]);
+            if (!users[userIndex].readyToStart) {
+                return {
+                    status: 404,
+                    success: false,
+                    errorCode: "AllPlayersNotReady",
+                    errorMessage: "All players are not ready",
+                };
+            }
+        }
+        
+        rooms[currentRoomIndex].gameStarted = true;
+        return {
+            status: 200,
+            success: true,
+            data: {
+                user: users.filter((user)=>user.socketId === socketId)[0]
+            }
+        };
+    }
+};
+
+const getUserBySocketId = (socketId = null) => {
+    if(socketId === null) return;
+
+    const userIndex = users.findIndex((user) => user.socketId === socketId);
+
+    if (userIndex === -1)
+        return {
+            status: 404,
+            success: false,
+            errorCode: "userNotFound",
+            errorMessage: "No user found.",
+        };
+
+    return {
+        status: 200,
+        success: true,
+        data: {
+            user: users[userIndex],
+        },
+    };
+
+
+}
 
 const displayRooms = () => {
     console.log(rooms);
@@ -208,4 +305,7 @@ module.exports = {
     updateUserName,
     displayRooms,
     displayUsers,
+    playerReadyToStart,
+    startGame,
+    getUserBySocketId
 };
