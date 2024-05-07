@@ -13,6 +13,7 @@ const {
     getRoomIdBySocketId,
     startGame,
     getUserBySocketId,
+    getNextTurn,
 } = require("./util");
 
 app.use(cors());
@@ -24,7 +25,6 @@ const socketIO = require("socket.io")(http, {
 });
 
 socketIO.on("connection", (socket) => {
-    // console.log(`⚡: ${socket.id} user just connected!`);
     socket.on("joinRoom", (userName, roomId) => {
         const user = addUser({
             socketId: socket.id,
@@ -67,6 +67,17 @@ socketIO.on("connection", (socket) => {
                 startedBy: res.data.user.userId,
                 notify: `${res.data.user.userName} started the game`,
             });
+            const resNextTurn = getNextTurn(resRoomId.data.roomId);
+            if (resNextTurn.success) {
+                socket.nsp.to(resRoomId.data.roomId).emit("updateTurn", {
+                    success: true,
+                    ...resNextTurn.data,
+                });
+            } else {
+                socket.nsp
+                    .to(resRoomId.data.roomId)
+                    .emit("message", resNextTurn);
+            }
         } else {
             socket.emit("gameStarted", res);
         }

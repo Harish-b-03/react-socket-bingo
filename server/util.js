@@ -6,6 +6,7 @@ const rooms = [
             // user objects
         ],
         gameStarted: false,
+        currentTurn: -1,
     },
 ];
 
@@ -96,6 +97,7 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
             roomId: roomId,
             players: [],
             gameStarted: false,
+            currentTurn: -1
         });
         users[userIndex].roomId = roomId;
         rooms[rooms.length - 1].players.push(userId);
@@ -288,6 +290,43 @@ const getUserBySocketId = (socketId = null) => {
 
 }
 
+const getNextTurn = (roomId = null) => {
+    if (roomId === null) return;
+
+    const roomIndex = getRoomIndex(roomId);
+
+    if (roomIndex === -1) {
+        return {
+            status: 404,
+            success: false,
+            errorCode: "roomNotFound",
+            errorMessage: "No room found.",
+        };
+    }
+
+    rooms[roomIndex].currentTurn = (rooms[roomIndex].currentTurn + 1) % (rooms[roomIndex].players.length - 1);
+    let userIdTurn = rooms[roomIndex].players[rooms[roomIndex].currentTurn];
+    let userIndexTurn = getUserIndex(userIdTurn);
+
+    if(userIndexTurn === -1)
+            return {
+                status: 404,
+                success: false,
+                errorCode: "userNotFound",
+                errorMessage: "No user found.",
+            };
+
+    return {
+        status: 200,
+        success: true,
+        data: {
+            turn: userIdTurn,
+            userName: users[userIndexTurn].userName
+        },
+    }
+
+}
+
 const displayRooms = () => {
     console.log(rooms);
 };
@@ -307,5 +346,6 @@ module.exports = {
     displayUsers,
     playerReadyToStart,
     startGame,
-    getUserBySocketId
+    getUserBySocketId,
+    getNextTurn
 };

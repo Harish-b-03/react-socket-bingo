@@ -22,6 +22,8 @@ const BingoBoard = ({ user, setUser }) => {
     const [lastChecked, setLastChecked] = useState(null);
     const [shuffledData, setShuffledData] = useState(shuffle());
     const [gameStarted, setGameStarted] = useState(false);
+    const [myTurn, setMyTurn] = useState(false);
+    const [turnMessage, setTurnMessage] = useState("");
 
     const sendWonMessage = () => {
         if (!socket.connected) return;
@@ -123,10 +125,23 @@ const BingoBoard = ({ user, setUser }) => {
             }
         });
 
+        socket.on("updateTurn", (result) => {
+            if (result.success) {
+                if (result.turn === user.userId) {
+                    setMyTurn(true);
+                    setTurnMessage("Your Turn");
+                } else {
+                    setMyTurn(false);
+                    setTurnMessage(`${result.userName}'s turn`);
+                }
+            }
+        });
+
         return () => {
             socket.off("reflectMark", onReflectMark);
             socket.off("readyConfirmed");
             socket.off("gameStarted");
+            socket.off("updateTurn");
         };
     }, []);
 
@@ -177,11 +192,13 @@ const BingoBoard = ({ user, setUser }) => {
                     <div
                         key={`data-${index}`}
                         className={`relative cursor-pointer flex items-center justify-center border border-gray-200 ${
-                            marked[index]
+                            marked[index] || !myTurn
                                 ? "z-0 pointer-events-none"
                                 : "hover:bg-slate-100"
                         }`}
                         onClick={() => {
+                            if(!myTurn) return;
+
                             setLastChecked(index);
                             mark(index);
                         }}
@@ -199,7 +216,11 @@ const BingoBoard = ({ user, setUser }) => {
             </div>
             <div className="w-[300px] mt-3 flex justify-evenly items-center">
                 {gameStarted ? (
-                    <></>
+                    myTurn ? (
+                        <span>Your Turn</span>
+                    ) : (
+                        <span>{turnMessage}</span>
+                    )
                 ) : !gameStarted && user.readyToStart ? (
                     <button
                         onClick={() => {
