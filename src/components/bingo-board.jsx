@@ -97,7 +97,7 @@ const BingoBoard = ({ user, setUser }) => {
         } else {
             setLastChecked(markedNumberIndex);
             mark(markedNumberIndex, true);
-            toast(`${userName} marked ${markedNumber}.`);
+            toast(`${userName} marked ${markedNumber}`);
         }
     };
 

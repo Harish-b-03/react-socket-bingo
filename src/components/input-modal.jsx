@@ -19,7 +19,9 @@ const InputModal = ({ setUser }) => {
     }, []);
 
     const onSubmit = () => {
-        socket.emit("joinRoom", name, roomId);
+        if(name.trim === "" || roomId.trim() === "") return;
+        
+        socket.emit("joinRoom", name.trim(), roomId.trim());
         setShowModal(false);
     };
 
@@ -73,7 +75,7 @@ bl                                        className="bg-gray-50 border border-gr
                             </div>
                             <button
                                 disabled={
-                                    name !== "" && roomId !== "" ? false : true
+                                    name.trim() !== "" && roomId.trim() !== "" ? false : true
                                 }
                                 onClick={() => onSubmit()}
                                 className="w-full text-white bg-violet-700 hover:bg-violet-800 focus:ring-4 focus:outline-none focus:ring-violet-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:bg-violet-300"

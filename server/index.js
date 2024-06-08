@@ -61,21 +61,24 @@ socketIO.on("connection", (socket) => {
     socket.on("startGame", () => {
         let res = startGame(socket.id);
         if (res.success) {
+            let {userId, userName} = res.data.user;
             let resRoomId = getRoomIdBySocketId(socket.id);
-            socket.nsp.to(resRoomId.data.roomId).emit("gameStarted", {
+            let roomId = resRoomId.data.roomId;
+
+            socket.nsp.to(roomId).emit("gameStarted", {
                 success: res.success,
-                startedBy: res.data.user.userId,
-                notify: `${res.data.user.userName} started the game`,
+                startedBy: userId,
+                notify: `${userName} started the game`,
             });
-            const resNextTurn = getNextTurn(resRoomId.data.roomId);
+            const resNextTurn = getNextTurn(roomId);
             if (resNextTurn.success) {
-                socket.nsp.to(resRoomId.data.roomId).emit("updateTurn", {
+                socket.nsp.to(roomId).emit("updateTurn", {
                     success: true,
                     ...resNextTurn.data,
                 });
             } else {
                 socket.nsp
-                    .to(resRoomId.data.roomId)
+                    .to(roomId)
                     .emit("message", resNextTurn);
             }
         } else {
@@ -102,10 +105,23 @@ socketIO.on("connection", (socket) => {
         socket.emit("message", `marked ${markedNumber}`);
         let resUser = getUserBySocketId(socket.id);
         if (resUser.success) {
-            socket.broadcast.to(resRoomId.data.roomId).emit("reflectMark", {
+            let roomId = resRoomId.data.roomId;
+            socket.broadcast.to(roomId).emit("reflectMark", {
                 markedNumber: markedNumber,
                 userName: resUser.data.user.userName,
             });
+            // check if win then go to next turn
+            const resNextTurn = getNextTurn(roomId);
+            if (resNextTurn.success) {
+                socket.nsp.to(roomId).emit("updateTurn", {
+                    success: true,
+                    ...resNextTurn.data,
+                });
+            } else {
+                socket.nsp
+                    .to(roomId)
+                    .emit("message", resNextTurn);
+            }
         }
     });
 

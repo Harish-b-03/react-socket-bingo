@@ -27,6 +27,11 @@ const App = () => {
         };
     }, []);
 
+    useEffect(() => {
+      console.log(user)
+    }, [user])
+    
+
     return (
         <>
             {connected ? (

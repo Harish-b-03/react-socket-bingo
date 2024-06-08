@@ -1,38 +1,30 @@
-const rooms = [
-    {
-        // room object template
-        roomId: "dummyRoom",
+const rooms = new Map();
+const users = new Map();
+
+/*
+Room Map:
+{
+    roomId: {
         players: [
             // user objects
         ],
         gameStarted: false,
         currentTurn: -1,
-    },
-];
+    }
+}
 
-const users = [
-    {
-        // user object template
+User Map:
+{
+    userId: {
         socketId: "bot",
         userId: "-1",
         userName: "bot",
         roomId: "",
         bingoBoard: [],
         readyToStart: false,
-    },
-];
-
-const getRoomIndex = (roomId = null) => {
-    if (roomId === null) return -1;
-
-    return rooms.findIndex((room) => room.roomId === roomId);
-};
-
-const getUserIndex = (userId = null) => {
-    if (userId === null) return -1;
-
-    return users.findIndex((user) => user.userId === userId);
-};
+    }
+}
+*/
 
 const addUser = ({
     socketId = null,
@@ -42,9 +34,10 @@ const addUser = ({
 }) => {
     if (socketId === null) return;
 
+    let userId =
+        Date.now().toString(36) + Math.random().toString(36).substring(2);
+
     const newUser = {
-        userId:
-            Date.now().toString(36) + Math.random().toString(36).substring(2),
         socketId,
         userName,
         roomId,
@@ -52,77 +45,68 @@ const addUser = ({
         readyToStart: false,
     };
 
-    users.push(newUser);
+    users.set(userId, newUser);
 
-    return newUser;
+    return {
+        userId: userId,
+        ...newUser,
+    }; // sending the user object as response, so that client can save this info for further communication
 };
 
-const updateUserName = ({ userId = null, newName = "" }) => {
-    if (userId === null || newName === "") return;
-
-    const index = getUserIndex(userId);
-
-    if (index === -1)
-        return {
-            status: 404,
-            success: false,
-            errorCode: "userNotFound",
-            errorMessage: "No user found.",
-        };
-
-    users[index].userName = newName;
-
-    return { status: 200, success: true, data: users[index] };
-};
+// TODO: Feature to update/edit the username
 
 const addUserToRoom = ({ userId = null, roomId = null }) => {
     if (userId === null || roomId === null) return;
 
-    const userIndex = getUserIndex(userId);
-
-    if (userIndex === -1)
+    if (!users.has(userId)) {
         return {
             status: 404,
             success: false,
             errorCode: "userNotFound",
             errorMessage: "No user found.",
         };
+    }
 
-    const roomIndex = getRoomIndex(roomId);
-    if (roomIndex === -1) {
+    if (!rooms.has(roomId)) {
         // creating a room
         console.log("creating a room");
 
-        rooms.push({
-            roomId: roomId,
-            players: [],
+        rooms.set(roomId, {
+            players: [userId],
             gameStarted: false,
-            currentTurn: -1
+            currentTurn: -1,
         });
-        users[userIndex].roomId = roomId;
-        rooms[rooms.length - 1].players.push(userId);
+        displayRooms();
+        users.set(userId, { ...users.get(userId), roomId: roomId });
 
         return {
             status: 200,
             success: true,
             data: {
                 message: `Created room (#${roomId})`,
-                room: rooms[roomIndex],
-                user: users[userIndex],
+                room: rooms.get(roomId),
+                user: users.get(userId),
             },
         };
     }
 
-    users[userIndex].roomId = roomId;
-    rooms[roomIndex].players.push(userId);
+    users.set(userId, { ...users.get(userId), roomId: roomId });
+
+    let roomDetails = rooms.get(roomId);
+    
+    rooms.set(roomId, {
+        ...roomDetails,
+        players: [...roomDetails.players, userId]
+    });
+    displayRooms()
 
     return {
         status: 200,
         success: true,
         data: {
             message: `Joined room (#${roomId})`,
-            room: rooms[roomIndex],
-            user: users[userIndex],
+            room: rooms.get(roomId),
+            user: users.get(userId),
         },
     };
 };
@@ -130,9 +114,7 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
 const updateGameStatus = ({ roomId = null, gameStarted = true }) => {
     if (roomId === null) return;
 
-    const roomIndex = getRoomIndex(roomId);
-
-    if (roomIndex === -1) {
+    if (!rooms.has(roomId)) {
         return {
             status: 404,
             success: false,
@@ -141,7 +123,7 @@ const updateGameStatus = ({ roomId = null, gameStarted = true }) => {
         };
     }
 
-    rooms[roomIndex].gameStarted = gameStarted;
+    rooms.set(roomId, { ...rooms.get(roomId), gameStarted: gameStarted });
 
     return {
         status: 200,
@@ -150,15 +132,13 @@ const updateGameStatus = ({ roomId = null, gameStarted = true }) => {
             message: `${
                 gameStarted ? "Game Started." : "Game not yet started."
             }`,
-            room: rooms[roomIndex],
+            room: rooms.get(roomId),
         },
     };
 };
 
 const updateBoardUser = ({ userId = null, boardData = [] }) => {
-    const userIndex = getUserIndex(userId);
-
-    if (userIndex === -1)
+    if (!users.has(userId))
         return {
             status: 404,
             success: false,
@@ -166,75 +146,86 @@ const updateBoardUser = ({ userId = null, boardData = [] }) => {
             errorMessage: "No user found.",
         };
 
-    users[userIndex].bingoBoard = boardData;
+    users.set(userId, { ...users.get(userId), bingoBoard: boardData });
 
     return {
         status: 200,
         success: true,
-        data: {
-            message: "Board data updated",
-        },
     };
 };
 
+const getUserIdBySocketId = (socketId = null) => {
+    if (!socketId) return;
+
+    for (let [key, value] of users) {
+        if (value.socketId === socketId) {
+            return key;
+        }
+    }
+
+    return 0;
+};
+
 const getRoomIdBySocketId = (socketId = null) => {
-    if (socketId === null) return;
+    if (!socketId) return;
 
-    const index = users.findIndex((user) => user.socketId === socketId);
+    let userId = getUserIdBySocketId(socketId);
 
-    if (index === -1) {
+    if (userId) {
         return {
-            status: 404,
-            success: false,
-            errorCode: "userNotFound",
-            errorMessage: "No user found.",
+            status: 200,
+            success: true,
+            data: {
+                roomId: users.get(userId).roomId,
+            },
         };
     }
 
     return {
-        status: 200,
-        success: true,
-        data: {
-            roomId: users[index].roomId,
-        },
+        status: 404,
+        success: false,
+        errorCode: "noSocketFound",
+        errorMessage: "No such socket found.",
     };
 };
 
 const playerReadyToStart = (socketId = null) => {
     if (socketId === null) return;
 
-    const userIndex = users.findIndex((user) => user.socketId === socketId);
+    const userId = getUserIdBySocketId(socketId);
 
-    if (userIndex === -1)
+    if (userId) {
+        users.set(userId, { ...users.get(userId), readyToStart: true });
+
         return {
-            status: 404,
-            success: false,
-            errorCode: "userNotFound",
-            errorMessage: "No user found.",
+            status: 200,
+            success: true,
+            data: {
+                user: users.get(userId),
+            },
         };
-
-    users[userIndex].readyToStart = true;
+    }
 
     return {
-        status: 200,
-        success: true,
-        data: {
-            user: users[userIndex],
-        },
+        status: 404,
+        success: false,
+        errorCode: "userNotFound",
+        errorMessage: "No user found.",
     };
 };
 
 const startGame = (socketId = null) => {
     let res = getRoomIdBySocketId(socketId);
-    
-    if(!res.success){
+
+    if (!res.success) {
         return res;
     }
 
-    let currentRoomIndex = getRoomIndex(res.data.roomId);
+    let roomId = res.data.roomId;
 
-    if (currentRoomIndex !== -1) {
-        if (rooms[currentRoomIndex].players.length < 2) {
+    if (rooms.has(roomId)) {
+        let roomDetails = rooms.get(roomId); 
+        if (roomDetails.players.length < 2) {
             return {
                 status: 404,
                 success: false,
@@ -243,9 +234,10 @@ const startGame = (socketId = null) => {
             };
         }
 
-        for(let i=0; i<rooms[currentRoomIndex].players.length; i++){
-            let userIndex = getUserIndex(rooms[currentRoomIndex].players[i]);
-            if (!users[userIndex].readyToStart) {
+        for (let i = 0; i < roomDetails.players.length; i++) {
+            let userId = roomDetails.players[i];
+
+            if (!users.get(userId).readyToStart) {
                 return {
                     status: 404,
                     success: false,
@@ -254,24 +246,73 @@ const startGame = (socketId = null) => {
                 };
             }
         }
-        
-        rooms[currentRoomIndex].gameStarted = true;
+
+        rooms.set(roomId, { ...roomDetails, gameStarted: true });
+
+        let userId = getUserIdBySocketId(socketId);
+
+        if (userId) {
+            return {
+                status: 200,
+                success: true,
+                data: {
+                    user: users.get(userId),
+                },
+            };
+        }
         return {
-            status: 200,
-            success: true,
-            data: {
-                user: users.filter((user)=>user.socketId === socketId)[0]
-            }
+            status: 404,
+            success: false,
+            errorCode: "userNotFound",
+            errorMessage: "No user found.",
         };
     }
 };
 
 const getUserBySocketId = (socketId = null) => {
-    if(socketId === null) return;
+    if (socketId === null) return;
 
-    const userIndex = users.findIndex((user) => user.socketId === socketId);
+    const userId = getUserIdBySocketId(socketId);
 
-    if (userIndex === -1)
+    if (userId) {
+        return {
+            status: 200,
+            success: true,
+            data: {
+                user: users.get(userId),
+            },
+        };
+    }
+    return {
+        status: 404,
+        success: false,
+        errorCode: "userNotFound",
+        errorMessage: "No user found.",
+    };
+};
+
+const getNextTurn = (roomId = null) => {
+    if (roomId === null) return;
+
+    if (!rooms.has(roomId)) {
+        return {
+            status: 404,
+            success: false,
+            errorCode: "roomNotFound",
+            errorMessage: "No room found.",
+        };
+    }
+
+    let roomDetails = rooms.get(roomId);
+    let currentTurn =
+        (roomDetails.currentTurn + 1) % (roomDetails.players.length);
+
+    rooms.set(roomId, { ...roomDetails, currentTurn: currentTurn });
+
+    roomDetails = rooms.get(roomId);
+    let userIdTurn = roomDetails.players[roomDetails.currentTurn];
+
+    if (!users.has(userIdTurn))
         return {
             status: 404,
             success: false,
@@ -283,56 +324,18 @@ const getUserBySocketId = (socketId = null) => {
         status: 200,
         success: true,
         data: {
-            user: users[userIndex],
+            turn: userIdTurn,
+            userName: users.get(userIdTurn).userName,
         },
     };
-
-
-}
-
-const getNextTurn = (roomId = null) => {
-    if (roomId === null) return;
-
-    const roomIndex = getRoomIndex(roomId);
-
-    if (roomIndex === -1) {
-        return {
-            status: 404,
-            success: false,
-            errorCode: "roomNotFound",
-            errorMessage: "No room found.",
-        };
-    }
-
-    rooms[roomIndex].currentTurn = (rooms[roomIndex].currentTurn + 1) % (rooms[roomIndex].players.length - 1);
-    let userIdTurn = rooms[roomIndex].players[rooms[roomIndex].currentTurn];
-    let userIndexTurn = getUserIndex(userIdTurn);
-
-    if(userIndexTurn === -1)
-            return {
-                status: 404,
-                success: false,
-                errorCode: "userNotFound",
-                errorMessage: "No user found.",
-            };
-
-    return {
-        status: 200,
-        success: true,
-        data: {
-            turn: userIdTurn,
-            userName: users[userIndexTurn].userName
-        },
-    }
-
-}
+};
 
 const displayRooms = () => {
-    console.log(rooms);
+    console.log("Rooms: ",rooms);
 };
 
 const displayUsers = () => {
-    console.log(users);
+    console.log("Users: ", users);
 };
 
 module.exports = {
@@ -341,11 +344,11 @@ module.exports = {
     getRoomIdBySocketId,
     updateBoardUser,
     updateGameStatus,
-    updateUserName,
     displayRooms,
     displayUsers,
     playerReadyToStart,
     startGame,
+    getUserIdBySocketId,
     getUserBySocketId,
-    getNextTurn
+    getNextTurn,
 };
