@@ -24,6 +24,7 @@ const BingoBoard = ({ user, setUser }) => {
     const [gameStarted, setGameStarted] = useState(false);
     const [myTurn, setMyTurn] = useState(false);
     const [turnMessage, setTurnMessage] = useState("");
+    const matrixDim = 5;
 
     const sendWonMessage = () => {
         if (!socket.connected) return;
@@ -33,49 +34,53 @@ const BingoBoard = ({ user, setUser }) => {
 
     const checkIfWon = (index) => {
         index += 1; // converting 0-based index to 1-based index
-        let mod = index % 5;
+        let mod = index % matrixDim;
         let sum;
 
         // col sum
         sum = 0;
-        for (let i = 0; i < 5; i++) {
-            sum += marked.at(i * 5 + mod - 1); // index - 1
+        for (let i = 0; i < matrixDim; i++) {
+            sum += marked.at(i * matrixDim + mod - 1); // index - 1
         }
-        if (sum === 5) {
+        if (sum === matrixDim) {
             toast("won - col");
             return true;
         }
 
         // row sum
-        let div = Math.floor((index - 1) / 5);
+        let div = Math.floor((index - 1) / matrixDim);
         sum = 0;
-        for (let i = div * 5; i < (div + 1) * 5; i++) {
+        for (let i = div * matrixDim; i < (div + 1) * matrixDim; i++) {
             sum += marked.at(i);
         }
-        if (sum === 5) {
+        if (sum === matrixDim) {
             sendWonMessage();
             toast("won - row");
             return true;
         }
 
         // main diagonal sum
-        sum = 0;
-        for (let i = 0; i < 5; i++) {
-            sum += marked.at(i * 5 + i);
-        }
-        if (sum === 5) {
-            toast("won - main diagonal");
-            return true;
+        if((index-1) % matrixDim === Math.trunc((index-1) / matrixDim)){
+            sum = 0;
+            for (let i = 0; i < matrixDim; i++) {
+                sum += marked.at(i * matrixDim + i);
+            }
+            if (sum === matrixDim) {
+                toast("won - main diagonal");
+                return true;
+            }
         }
 
         // 2nd diagonal sum
-        sum = 0;
-        for (let i = 1; i <= 5; i++) {
-            sum += marked.at(i * 4);
-        }
-        if (sum === 5) {
-            toast("won - 2nd diagonal");
-            return true;
+        if((index-1) % matrixDim + (index-1) / matrixDim === (matrixDim-1)){ //
+            sum = 0;
+            for (let i = 1; i <= matrixDim; i++) {
+                sum += marked.at(i * 4);
+            }
+            if (sum === matrixDim) {
+                toast("won - 2nd diagonal");
+                return true;
+            }
         }
     };
 
@@ -83,14 +88,14 @@ const BingoBoard = ({ user, setUser }) => {
         let markedNumber = data.markedNumber;
         let userName = data.userName;
         let markedNumberIndex = -1;
-        for (let i = 0; i < 5 * 5; i++) {
-            if (shuffledData[Math.floor(i / 5)][i % 5] === markedNumber) {
+        for (let i = 0; i < matrixDim * matrixDim; i++) {
+            if (shuffledData[Math.floor(i / matrixDim)][i % matrixDim] === markedNumber) {
                 markedNumberIndex = i;
                 break;
             }
         }
 
-        if (markedNumberIndex === -1) {
+        if (markedNumberIndex === -1) { // just extra check
             toast(
                 `Marked number (${markedNumber}) is not present in your bingo board`
             );
@@ -157,7 +162,7 @@ const BingoBoard = ({ user, setUser }) => {
         if (!markRequestFromServer) {
             // if player marks a number then send it to other players.
             // if other player is marking a number then don't send the same to other players again
-            socket.emit("mark", shuffledData[Math.floor(index / 5)][index % 5]);
+            socket.emit("mark", shuffledData[Math.floor(index / matrixDim)][index % matrixDim]);
         }
 
         setMarked((prev) => {
@@ -187,8 +192,8 @@ const BingoBoard = ({ user, setUser }) => {
                     </div>
                 ))}
             </div>
-            <div className="h-[300px] w-[300px] max-h-full max-w-full grid grid-cols-5 relative">
-                {[...Array(25).keys()].map((_, index) => (
+            <div className={`h-[300px] w-[300px] max-h-full max-w-full grid grid-cols-${matrixDim} relative`}>
+                {[...Array(matrixDim * matrixDim).keys()].map((_, index) => (
                     <div
                         key={`data-${index}`}
                         className={`relative cursor-pointer flex items-center justify-center border border-gray-200 ${
@@ -203,7 +208,7 @@ const BingoBoard = ({ user, setUser }) => {
                             mark(index);
                         }}
                     >
-                        {shuffledData?.at(Math.floor(index / 5)).at(index % 5)}
+                        {shuffledData?.at(Math.floor(index / matrixDim)).at(index % matrixDim)}
                         <div
                             className={`absolute left-0 top-0 h-[60px] w-[60px] flex justify-center text-5xl pointer-events-none z-20 transition-all duration-300 ease-in-out ${
                                 marked[index] ? "opacity-100" : " opacity-0"

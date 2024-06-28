@@ -90,6 +90,7 @@ socketIO.on("connection", (socket) => {
         let resRoomId = getRoomIdBySocketId(socket.id);
         if (!resRoomId.success) {
             socket.emit("message", "Some error occured");
+            return;
         }
         socket.emit("message", "You Win");
         socket.broadcast
@@ -101,6 +102,7 @@ socketIO.on("connection", (socket) => {
         let resRoomId = getRoomIdBySocketId(socket.id);
         if (!resRoomId.success) {
             socket.emit("message", "Some error occured");
+            return;
         }
         socket.emit("message", `marked ${markedNumber}`);
         let resUser = getUserBySocketId(socket.id);
@@ -121,6 +123,7 @@ socketIO.on("connection", (socket) => {
                 socket.nsp
                     .to(roomId)
                     .emit("message", resNextTurn);
+                return;
             }
         }
     });
