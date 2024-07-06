@@ -18,7 +18,7 @@ const {
     deleteUser,
 } = require("./util");
 
-app.use(cors());
+// app.use(cors());
 
 const socketIO = require("socket.io")(http, {
     cors: {
