@@ -22,7 +22,10 @@ app.use(cors());
 
 const socketIO = require("socket.io")(http, {
     cors: {
-        origin: ["https://react-socket-bingo.vercel.app/"],
+        origin: "https://react-socket-bingo.vercel.app/",
+        methods: ["GET", "POST"],
+        allowedHeaders: ["cors-custom-header"],
+        credentials: true
     },
 });
 
