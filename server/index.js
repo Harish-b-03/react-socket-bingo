@@ -18,20 +18,19 @@ const {
     deleteUser,
 } = require("./util");
 
-app.use(cors())
+app.use(cors({
+    origin: "https://react-socket-bingo.vercel.app",
+    methods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "Origin", "X-Requested-With", "Accept", "my-custom-header"]
+}));
 
 const socketIO = require("socket.io")(http, {
     cors: {
-        origin: ["https://react-socket-bingo.vercel.app/"],
-        handlePreflightRequest: (req, res) => {
-            res.writeHead(200, {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET,POST",
-                "Access-Control-Allow-Headers": "my-custom-header",
-                "Access-Control-Allow-Credentials": true
-            });
-            res.end();
-        }
+        origin: "https://react-socket-bingo.vercel.app",
+        methods: ["GET", "POST"],
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization", "Origin", "X-Requested-With", "Accept", "my-custom-header"],
     },
 });
 
