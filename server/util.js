@@ -39,6 +39,7 @@ const addUser = ({
 
     const newUser = {
         socketId,
+        userId,
         userName,
         roomId,
         bingoBoard,
@@ -48,7 +49,6 @@ const addUser = ({
     users.set(userId, newUser);
 
     return {
-        userId: userId,
         ...newUser,
     }; // sending the user object as response, so that client can save this info for further communication
 };
@@ -89,7 +89,7 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
             },
         };
     }
-
+    // ToDo: Dont add the user to a room where game is still going on or dont allow the new users to play in the current match
     users.set(userId, { ...users.get(userId), roomId: roomId });
 
     let roomDetails = rooms.get(roomId);
@@ -330,6 +330,100 @@ const getNextTurn = (roomId = null) => {
     };
 };
 
+const resetGame = (roomId = null) => {
+    if (roomId === null) return;
+
+    if (!rooms.has(roomId)) {
+        return {
+            status: 404,
+            success: false,
+            errorCode: "roomNotFound",
+            errorMessage: "No room found.",
+        };
+    }
+
+    let roomDetails = rooms.get(roomId);
+    let players = [];
+
+    for(let i=0; i < roomDetails.players.length; i++){
+        let user = users.get(roomDetails.players[i]);
+        if(user){
+            console.log(user)
+            users.set(user.userId, {
+                ...user,
+                bingoBoard: [],
+                readyToStart: false,
+            })
+            console.log({
+                ...user,
+                bingoBoard: [],
+                readyToStart: false,
+            })
+            players.push(user.userId);
+        }
+    }
+
+    rooms.set(roomId, {
+        players: players,
+        gameStarted: false,
+        currentTurn: -1,
+    })
+
+    return {
+        status: 200,
+        success: true
+    };
+}
+
+const deleteUser = (socketId = null) => {
+    if (socketId === null) return;
+
+    const resUser = getUserBySocketId(socketId);
+    
+    if(!resUser.success) return;
+    
+    let user = resUser.data.user;
+
+    if (user) {
+
+        users.delete(user.userId);
+        removeUserFromRoom(user.userId, user.roomId);
+
+        return {
+            status: 200,
+            success: true
+        };
+    }
+
+    return {
+        status: 404,
+        success: false,
+        errorCode: "userNotFound",
+        errorMessage: "No user found.",
+    };
+
+}
+
+const removeUserFromRoom = (userId, roomId) => {
+    const roomDetails = rooms.get(roomId);
+    let newPlayerList = [];
+
+    if(roomDetails !== -1){
+        if(roomDetails.players.includes(userId)){
+            newPlayerList = roomDetails.players.filter((i) => i !== userId);
+
+            if(newPlayerList.length > 0){
+                rooms.set(roomId, {
+                    ...roomDetails,
+                    players: newPlayerList
+                })
+            } else {
+                rooms.delete(roomId);
+            }
+        }
+    }
+}
+
 const displayRooms = () => {
     console.log("Rooms: ",rooms);
 };
@@ -351,4 +445,6 @@ module.exports = {
     getUserIdBySocketId,
     getUserBySocketId,
     getNextTurn,
+    resetGame,
+    deleteUser
 };

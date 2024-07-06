@@ -17,6 +17,14 @@ const App = () => {
         toast(message);
     };
 
+    const resetUserReadyState = (status) => {
+        setUser(prev => ({
+            ...prev,
+            readyToStart: status
+        }))
+        toast("Reseting game")
+    }
+
     useEffect(() => {
         socket.on("connect", onConnect);
         socket.on("message", onMessage);
@@ -36,7 +44,7 @@ const App = () => {
         <>
             {connected ? (
                 <div className="h-screen w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
-                    {user !== null && <BingoBoard user={user} setUser={setUser}/>}
+                    {user !== null && <BingoBoard user={user} setUser={setUser} resetUserReadyState={resetUserReadyState}/>}
                     <InputModal setUser={setUser}/>
                 </div>
             ) : (

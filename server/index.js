@@ -14,6 +14,8 @@ const {
     startGame,
     getUserBySocketId,
     getNextTurn,
+    resetGame,
+    deleteUser,
 } = require("./util");
 
 app.use(cors());
@@ -88,14 +90,22 @@ socketIO.on("connection", (socket) => {
 
     socket.on("iWonMessage", () => {
         let resRoomId = getRoomIdBySocketId(socket.id);
-        if (!resRoomId.success) {
+        let resUser = getUserBySocketId(socket.id);
+        if (!resRoomId.success || !resUser.success) {
             socket.emit("message", "Some error occured");
             return;
         }
-        socket.emit("message", "You Win");
+        let roomId = resRoomId.data.roomId;
+        socket.emit("win", "You Win");
         socket.broadcast
-            .to(resRoomId.data.roomId)
-            .emit("message", `${socket.id} won`);
+            .to(roomId)
+            .emit("win", `${resUser.data.user.userName} won`);
+        const response = resetGame(roomId)
+        console.log("response", response)
+        if(response.success){
+            socket.emit("resetGame");
+            socket.to(roomId).emit("resetGame");
+        }
     });
 
     socket.on("mark", (markedNumber) => {
@@ -104,7 +114,7 @@ socketIO.on("connection", (socket) => {
             socket.emit("message", "Some error occured");
             return;
         }
-        socket.emit("message", `marked ${markedNumber}`);
+        // socket.emit("message", `marked ${markedNumber}`);
         let resUser = getUserBySocketId(socket.id);
         if (resUser.success) {
             let roomId = resRoomId.data.roomId;
@@ -131,7 +141,10 @@ socketIO.on("connection", (socket) => {
     socket.on("disconnect", () => {
         // remove user from the room
         // delete user
+        deleteUser(socket.id);
         console.log("🔥: A user disconnected");
+        displayRooms();
+        displayUsers();
     });
 });
 

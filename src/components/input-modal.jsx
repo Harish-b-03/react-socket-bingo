@@ -27,7 +27,6 @@ const InputModal = ({ setUser }) => {
 
     return (
         <div
-            onClick={() => setShowModal(false)}
             className={`${
                 showModal ? "opacity-100" : "opacity-0 pointer-events-none"
             } overflow-y-auto overflow-x-hidden fixed top-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-full bg-[rgba(0,0,0,0.5)] transition-all duration-300`}

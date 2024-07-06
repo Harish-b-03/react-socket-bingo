@@ -17,19 +17,19 @@ const shuffle = () => {
     ];
 };
 
-const BingoBoard = ({ user, setUser }) => {
+const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
     const [marked, setMarked] = useState([...Array(25).keys()].fill(0));
     const [lastChecked, setLastChecked] = useState(null);
     const [shuffledData, setShuffledData] = useState(shuffle());
     const [gameStarted, setGameStarted] = useState(false);
     const [myTurn, setMyTurn] = useState(false);
     const [turnMessage, setTurnMessage] = useState("");
-    const matrixDim = 5;
+    const [matrixDim, setMatrixDim] = useState(5);
 
     const sendWonMessage = () => {
         if (!socket.connected) return;
 
-        socket.emit("iWonMessage");
+        socket.emit("iWonMessage", marked); // check the correctness in backend and get the won board to show in the win message
     };
 
     const checkIfWon = (index) => {
@@ -44,6 +44,7 @@ const BingoBoard = ({ user, setUser }) => {
         }
         if (sum === matrixDim) {
             toast("won - col");
+            sendWonMessage();
             return true;
         }
 
@@ -67,18 +68,20 @@ const BingoBoard = ({ user, setUser }) => {
             }
             if (sum === matrixDim) {
                 toast("won - main diagonal");
+                sendWonMessage();
                 return true;
             }
         }
 
         // 2nd diagonal sum
-        if((index-1) % matrixDim + (index-1) / matrixDim === (matrixDim-1)){ //
+        if((index-1) % matrixDim + (index-1) / matrixDim === (matrixDim-1)){
             sum = 0;
             for (let i = 1; i <= matrixDim; i++) {
                 sum += marked.at(i * 4);
             }
             if (sum === matrixDim) {
                 toast("won - 2nd diagonal");
+                sendWonMessage();
                 return true;
             }
         }
@@ -102,12 +105,25 @@ const BingoBoard = ({ user, setUser }) => {
         } else {
             setLastChecked(markedNumberIndex);
             mark(markedNumberIndex, true);
-            toast(`${userName} marked ${markedNumber}`);
+            // toast(`${userName} marked ${markedNumber}`);
         }
     };
 
+    const resetMarked = () => {
+        setMarked([...Array(25).keys()].fill(0));
+    }
+
+    const onResetGame = () => {
+        setGameStarted(false);
+        setLastChecked(false);
+        resetMarked();
+        resetUserReadyState();
+    } 
+    
+
     useEffect(() => {
         socket.on("reflectMark", onReflectMark);
+
         socket.on("readyConfirmed", (result) => {
             if (result.success) {
                 setUser(result.data.user);
@@ -142,11 +158,19 @@ const BingoBoard = ({ user, setUser }) => {
             }
         });
 
+        socket.on("win", (message) => {
+            toast(message);
+        });
+
+        socket.on("resetGame", onResetGame);
+
         return () => {
             socket.off("reflectMark", onReflectMark);
             socket.off("readyConfirmed");
             socket.off("gameStarted");
             socket.off("updateTurn");
+            socket.off("win");
+            socket.off("resetGame");
         };
     }, []);
 
@@ -192,7 +216,7 @@ const BingoBoard = ({ user, setUser }) => {
                     </div>
                 ))}
             </div>
-            <div className={`h-[300px] w-[300px] max-h-full max-w-full grid grid-cols-${matrixDim} relative`}>
+            <div className="h-[300px] w-[300px] max-h-full max-w-full grid relative" style={{gridTemplateColumns: `repeat(${matrixDim || 5}, minmax(0, 1fr))`}}>
                 {[...Array(matrixDim * matrixDim).keys()].map((_, index) => (
                     <div
                         key={`data-${index}`}
@@ -239,7 +263,7 @@ const BingoBoard = ({ user, setUser }) => {
                     <>
                         <button
                             onClick={() =>
-                                setMarked([...Array(25).keys()].fill(0))
+                                resetMarked()
                             }
                             className="m-3"
                         >
