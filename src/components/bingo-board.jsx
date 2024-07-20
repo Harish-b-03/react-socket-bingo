@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket";
 import { toast } from "react-toastify";
 
@@ -25,6 +25,8 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
     const [myTurn, setMyTurn] = useState(false);
     const [turnMessage, setTurnMessage] = useState("");
     const [matrixDim, setMatrixDim] = useState(5);
+    const shuffledDataRef = useRef();
+    shuffledDataRef.current = shuffledData;
 
     const sendWonMessage = () => {
         if (!socket.connected) return;
@@ -89,10 +91,10 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
 
     const onReflectMark = (data) => {
         let markedNumber = data.markedNumber;
-        let userName = data.userName;
+        // let userName = data.userName;
         let markedNumberIndex = -1;
         for (let i = 0; i < matrixDim * matrixDim; i++) {
-            if (shuffledData[Math.floor(i / matrixDim)][i % matrixDim] === markedNumber) {
+            if (shuffledDataRef.current[Math.floor(i / matrixDim)][i % matrixDim] === markedNumber) {
                 markedNumberIndex = i;
                 break;
             }
@@ -220,13 +222,13 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
                 {[...Array(matrixDim * matrixDim).keys()].map((_, index) => (
                     <div
                         key={`data-${index}`}
-                        className={`relative cursor-pointer flex items-center justify-center border border-gray-200 ${
+                        className={`relative cursor-pointer flex items-center justify-center border border-gray-200 select-none ${
                             marked[index] || !myTurn
-                                ? "z-0 pointer-events-none"
+                                ? "z-0"
                                 : "hover:bg-slate-100"
                         }`}
                         onClick={() => {
-                            if(!myTurn) return;
+                            if(!myTurn || marked[index]) return;
 
                             setLastChecked(index);
                             mark(index);
@@ -234,8 +236,8 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
                     >
                         {shuffledData?.at(Math.floor(index / matrixDim)).at(index % matrixDim)}
                         <div
-                            className={`absolute left-0 top-0 h-[60px] w-[60px] flex justify-center text-5xl pointer-events-none z-20 transition-all duration-300 ease-in-out ${
-                                marked[index] ? "opacity-100" : " opacity-0"
+                            className={`absolute left-0 top-0 h-[60px] w-[60px] flex justify-center text-5xl select-none z-20 transition-all duration-300 ease-in-out ${
+                                marked[index] ? "opacity-100 hover:opacity-10" : " opacity-0"
                             }`}
                         >
                             x
@@ -278,7 +280,7 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
                             Ready
                         </button>
                         <button
-                            onClick={() => setShuffledData(shuffle())}
+                            onClick={() => setShuffledData(() => shuffle())}
                             className="m-3"
                         >
                             Shuffle
