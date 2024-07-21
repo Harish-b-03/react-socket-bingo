@@ -58,7 +58,7 @@ const App = () => {
 					Connecting to the server...
 				</div>
 			)}
-			<ToastContainer position={isMobile? "bottom-center" : "top-right"} autoClose={2000} pauseOnFocusLoss={false} transition={Slide} stacked style={{transform: isMobile && "scale(0.75)"}}/>
+			<ToastContainer position={isMobile? "bottom-center" : "top-right"} autoClose={2000} pauseOnFocusLoss={false} transition={Slide} stacked style={{transform: isMobile && "scale(0.75)"}} draggablePercent={60}/>
 		</>
 	);
 };

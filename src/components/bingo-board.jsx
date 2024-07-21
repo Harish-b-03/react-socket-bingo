@@ -35,54 +35,49 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
     };
 
     const checkIfWon = (index) => {
-        index += 1; // converting 0-based index to 1-based index
-        let mod = index % matrixDim;
         let sum;
+        let rowNo = Math.floor(index / matrixDim);
+        let colNo = index % matrixDim;
 
         // col sum
         sum = 0;
         for (let i = 0; i < matrixDim; i++) {
-            sum += marked.at(i * matrixDim + mod - 1); // index - 1
+            sum += marked.at(i * matrixDim + colNo);
         }
         if (sum === matrixDim) {
-            toast("won - col");
             sendWonMessage();
             return true;
         }
 
         // row sum
-        let div = Math.floor((index - 1) / matrixDim);
         sum = 0;
-        for (let i = div * matrixDim; i < (div + 1) * matrixDim; i++) {
+        for (let i = rowNo * matrixDim; i < (rowNo + 1) * matrixDim; i++) {
             sum += marked.at(i);
         }
         if (sum === matrixDim) {
             sendWonMessage();
-            toast("won - row");
             return true;
         }
 
         // main diagonal sum
-        if((index-1) % matrixDim === Math.trunc((index-1) / matrixDim)){
+        if(colNo === rowNo){
             sum = 0;
             for (let i = 0; i < matrixDim; i++) {
                 sum += marked.at(i * matrixDim + i);
             }
             if (sum === matrixDim) {
-                toast("won - main diagonal");
                 sendWonMessage();
                 return true;
             }
         }
-
+        
         // 2nd diagonal sum
-        if((index-1) % matrixDim + (index-1) / matrixDim === (matrixDim-1)){
+        if(rowNo + colNo === matrixDim - 1){
             sum = 0;
             for (let i = 1; i <= matrixDim; i++) {
-                sum += marked.at(i * 4);
+                sum += marked.at(i * (matrixDim - 1));
             }
             if (sum === matrixDim) {
-                toast("won - 2nd diagonal");
                 sendWonMessage();
                 return true;
             }
@@ -118,6 +113,8 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
     const onResetGame = () => {
         setGameStarted(false);
         setLastChecked(false);
+        setMyTurn(false);
+        setTurnMessage("");
         resetMarked();
         resetUserReadyState();
     } 
@@ -228,7 +225,7 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
                                 : "hover:bg-slate-100"
                         }`}
                         onClick={() => {
-                            if(!myTurn || marked[index]) return;
+                            if(!myTurn || marked[index] || !gameStarted) return;
 
                             setLastChecked(index);
                             mark(index);
