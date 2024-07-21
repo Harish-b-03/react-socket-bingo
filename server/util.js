@@ -417,23 +417,26 @@ const deleteUser = (socketId = null) => {
 }
 
 const removeUserFromRoom = (userId, roomId) => {
+    if(!roomId) return;
+
     const roomDetails = rooms.get(roomId);
+
+    if(!roomDetails) return;
+
     let newPlayerList = [];
+    if(roomDetails.players.includes(userId)){
+        newPlayerList = roomDetails.players.filter((i) => i !== userId);
 
-    if(roomDetails !== -1){
-        if(roomDetails.players.includes(userId)){
-            newPlayerList = roomDetails.players.filter((i) => i !== userId);
-
-            if(newPlayerList.length > 0){
-                rooms.set(roomId, {
-                    ...roomDetails,
-                    players: newPlayerList
-                })
-            } else {
-                rooms.delete(roomId);
-            }
+        if(newPlayerList.length > 0){
+            rooms.set(roomId, {
+                ...roomDetails,
+                players: newPlayerList
+            })
+        } else {
+            rooms.delete(roomId);
         }
     }
+
 }
 
 const displayRooms = () => {

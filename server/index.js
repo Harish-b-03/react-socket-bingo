@@ -40,10 +40,9 @@ socketIO.on("connection", (socket) => {
         const user = addUser({
             socketId: socket.id,
             userName: userName,
-            roomId: roomId,
             bingoBoard: [],
         });
-        const res = addUserToRoom({ userId: user.userId, roomId: user.roomId });
+        const res = addUserToRoom({ userId: user.userId, roomId: roomId });
         if (!res.success) {
             socket.emit("joinRoomError", res.errorMessage);
             socket.emit(
@@ -53,7 +52,7 @@ socketIO.on("connection", (socket) => {
             return;
         }
         socket.join(roomId);
-        socket.emit("joinedRoom", user);
+        socket.emit("joinedRoom", res.data.user);
         socket.broadcast.to(roomId).emit("message", `${user.userName} joined`);
     });
 
