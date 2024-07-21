@@ -35,22 +35,24 @@ const socketIO = require("socket.io")(http, {
 });
 
 socketIO.on("connection", (socket) => {
-    socket.on("joinRoom", (userName, roomId) => {
+    socket.on("joinRoom", (userName, roomName) => {
+        let roomId = roomName.toLowerCase();
         const user = addUser({
             socketId: socket.id,
             userName: userName,
             roomId: roomId,
             bingoBoard: [],
         });
-        socket.join(roomId);
         const res = addUserToRoom({ userId: user.userId, roomId: user.roomId });
         if (!res.success) {
+            socket.emit("joinRoomError", res.errorMessage);
             socket.emit(
                 "message",
                 "Error while joining the room. Please try again"
             );
             return;
         }
+        socket.join(roomId);
         socket.emit("joinedRoom", user);
         socket.broadcast.to(roomId).emit("message", `${user.userName} joined`);
     });

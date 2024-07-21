@@ -26,6 +26,8 @@ User Map:
 }
 */
 
+const maxCapacityOfRoom = 4;
+
 const addUser = ({
     socketId = null,
     userName = "user",
@@ -89,10 +91,20 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
             },
         };
     }
+    
+    let roomDetails = rooms.get(roomId);
+
+    if(roomDetails.players.length >= maxCapacityOfRoom){
+        return {
+            status: 403, // Forbidden status
+            success: false,
+            errorCode: "roomFull",
+            errorMessage: `#${roomId} is full (A room can host upto ${maxCapacityOfRoom} users).`,
+        };
+    }
+
     // ToDo: Dont add the user to a room where game is still going on or dont allow the new users to play in the current match
     users.set(userId, { ...users.get(userId), roomId: roomId });
-
-    let roomDetails = rooms.get(roomId);
     
     rooms.set(roomId, {
         ...roomDetails,

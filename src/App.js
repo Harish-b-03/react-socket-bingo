@@ -43,7 +43,7 @@ const App = () => {
     return (
         <>
             {connected ? (
-                <div className="h-screen w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
+                <div className="h-svh w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
                     {user !== null && <BingoBoard user={user} setUser={setUser} resetUserReadyState={resetUserReadyState}/>}
                     <InputModal setUser={setUser}/>
                 </div>
