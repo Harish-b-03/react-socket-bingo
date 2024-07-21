@@ -105,7 +105,7 @@ socketIO.on("connection", (socket) => {
             return;
         }
         let roomId = resRoomId.data.roomId;
-        socket.emit("win", "You Win");
+        socket.emit("win", "You Win!");
         socket.broadcast
             .to(roomId)
             .emit("win", `${resUser.data.user.userName} won`);

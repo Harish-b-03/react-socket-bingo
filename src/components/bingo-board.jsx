@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket";
 import { toast } from "react-toastify";
+import StatusBar from "./status-bar";
 
 const shuffle = () => {
     const array = [...Array(26).keys()].slice(1);
@@ -158,7 +159,11 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
         });
 
         socket.on("win", (message) => {
-            toast(message);
+            if(message === "You Win!"){
+                toast.success(message, { autoClose: 5000 });
+            } else{
+                toast.error("You Lost!", { autoClose: 5000 });    
+            }
         });
 
         socket.on("resetGame", onResetGame);
@@ -242,49 +247,7 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
                     </div>
                 ))}
             </div>
-            <div className="w-[300px] mt-3 flex justify-evenly items-center">
-                {gameStarted ? (
-                    myTurn ? (
-                        <span>Your Turn</span>
-                    ) : (
-                        <span>{turnMessage}</span>
-                    )
-                ) : !gameStarted && user.readyToStart ? (
-                    <button
-                        onClick={() => {
-                            socket.emit("startGame");
-                        }}
-                        className="m-3 px-14 py-2 min-w-[120px] text-center text-white bg-violet-500 border border-violet-600 rounded-full active:text-violet-500 hover:bg-violet-600 focus:outline-none focus:ring"
-                    >
-                        Start
-                    </button>
-                ) : (
-                    <>
-                        <button
-                            onClick={() =>
-                                resetMarked()
-                            }
-                            className="m-3"
-                        >
-                            Reset
-                        </button>
-                        <button
-                            onClick={() => {
-                                socket.emit("playerReadyToStart");
-                            }}
-                            className="m-3 px-6 py-2 min-w-[120px] text-center text-white bg-violet-500 border border-violet-600 rounded-full active:text-violet-500 hover:bg-violet-600 focus:outline-none focus:ring"
-                        >
-                            Ready
-                        </button>
-                        <button
-                            onClick={() => setShuffledData(() => shuffle())}
-                            className="m-3"
-                        >
-                            Shuffle
-                        </button>
-                    </>
-                )}
-            </div>
+            <StatusBar gameStarted={gameStarted} myTurn={myTurn} turnMessage={turnMessage} isUserReady={user?.readyToStart} shuffleData={() => setShuffledData(() => shuffle())} resetMarked={resetMarked}/>
         </div>
     );
 };
