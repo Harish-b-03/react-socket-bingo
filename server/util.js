@@ -78,6 +78,7 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
             gameStarted: false,
             currentTurn: -1,
         });
+        displayUsers();
         displayRooms();
         users.set(userId, { ...users.get(userId), roomId: roomId });
 
