@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket";
 import { toast } from "react-toastify";
 import StatusBar from "./status-bar";
+import BingoBoardHeader from "./bingo-board-header";
 
 const shuffle = () => {
     const array = [...Array(26).keys()].slice(1);
@@ -210,16 +211,7 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
 
     return (
         <div className="flex flex-col">
-            <div className="w-[300px] flex border border-gray-200 rounded-t-3xl box-border">
-                {["B", "i", "n", "g", "o"].map((letter, index) => (
-                    <div
-                        key={`letter-${index}`}
-                        className="w-[60px] h-[60px] flex items-center justify-center font-bold"
-                    >
-                        {letter.toUpperCase()}
-                    </div>
-                ))}
-            </div>
+            <BingoBoardHeader />
             <div className="h-[300px] w-[300px] max-h-full max-w-full grid relative" style={{gridTemplateColumns: `repeat(${matrixDim || 5}, minmax(0, 1fr))`}}>
                 {[...Array(matrixDim * matrixDim).keys()].map((_, index) => (
                     <div
