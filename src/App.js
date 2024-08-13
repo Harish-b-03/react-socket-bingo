@@ -9,6 +9,7 @@ import { isMobile } from "react-device-detect";
 const App = () => {
 	const [connected, setConnected] = useState(false);
 	const [user, setUser] = useState(null);
+	const updateUser = (newUserDetails) => setUser(newUserDetails);
 
 	const onConnect = () => {
 		setConnected(true);
@@ -47,7 +48,7 @@ const App = () => {
 					{user !== null && (
 						<BingoBoard
 							user={user}
-							setUser={setUser}
+							updateUser={updateUser}
 							resetUserReadyState={resetUserReadyState}
 						/>
 					)}

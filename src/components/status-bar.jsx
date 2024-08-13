@@ -7,6 +7,7 @@ const StatusBar = ({
 	isUserReady,
 	shuffleData,
 	resetMarked,
+	showStatusBar
 }) => {
 	const getStatusMessage = () => {
 		if (gameStarted) {
@@ -43,7 +44,7 @@ const StatusBar = ({
 	};
 
 	return (
-		<div className="w-[300px] mt-3 flex justify-evenly items-center">
+		<div className={`w-[300px] mt-3 flex justify-evenly items-center ${!showStatusBar && 'hidden'}`}>
 			{!gameStarted && !isUserReady && (
 				<button onClick={() => resetMarked()} className="m-3">
 					Reset

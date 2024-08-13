@@ -19,14 +19,16 @@ const shuffle = () => {
     ];
 };
 
-const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
+const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
     const [marked, setMarked] = useState([...Array(25).keys()].fill(0));
     const [lastChecked, setLastChecked] = useState(null);
     const [shuffledData, setShuffledData] = useState(shuffle());
     const [gameStarted, setGameStarted] = useState(false);
     const [myTurn, setMyTurn] = useState(false);
-    const [turnMessage, setTurnMessage] = useState("");
-    const [matrixDim, setMatrixDim] = useState(5);
+    const [statusMessage, setStatusMessage] = useState(""); // this state variable is used to store turn message, like "Your turn", "Player1's turn", and win message like "You win" and "You Lost"
+    const [matrixDim] = useState(5);
+    const [gameOver, setGameOver] = useState(false); // we can't  use gameStarted variable to check whether the game is over or not, as we have many game status like "player not ready and game not started". "player ready", "game started". So, using this variable. 
+    const gameResetTimeoutRef = useRef();
     const shuffledDataRef = useRef();
     shuffledDataRef.current = shuffledData;
 
@@ -116,7 +118,8 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
         setGameStarted(false);
         setLastChecked(false);
         setMyTurn(false);
-        setTurnMessage("");
+        setStatusMessage("");
+        setGameOver(false);
         resetMarked();
         resetUserReadyState();
     } 
@@ -127,7 +130,7 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
 
         socket.on("readyConfirmed", (result) => {
             if (result.success) {
-                setUser(result.data.user);
+                updateUser(result.data.user);
                 toast.success("Ready for the game");
             } else {
                 toast.error(result.errorMessage);
@@ -151,23 +154,28 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
             if (result.success) {
                 if (result.turn === user.userId) {
                     setMyTurn(true);
-                    setTurnMessage("Your Turn");
+                    setStatusMessage("Your Turn");
                 } else {
                     setMyTurn(false);
-                    setTurnMessage(`${result.userName}'s turn`);
+                    setStatusMessage(`${result.userName}'s turn`);
                 }
             }
         });
 
         socket.on("win", (message) => {
+            // game is over
+            setGameStarted(false);
+            setGameOver(true);
             if(message === "You Win!"){
                 toast.success(message, { autoClose: 5000 });
+                setStatusMessage(message);
             } else{
+                setStatusMessage("You Lost!");
                 toast.error("You Lost!", { autoClose: 5000 });    
             }
         });
 
-        socket.on("resetGame", onResetGame);
+        socket.on("resetGame", () => {gameResetTimeoutRef.current = setTimeout(onResetGame, 5000)});
 
         return () => {
             socket.off("reflectMark", onReflectMark);
@@ -176,6 +184,8 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
             socket.off("updateTurn");
             socket.off("win");
             socket.off("resetGame");
+            clearTimeout(gameResetTimeoutRef.current);
+            gameResetTimeoutRef.current = null;
         };
     }, []);
 
@@ -210,7 +220,8 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
     };
 
     return (
-        <div className="flex flex-col">
+        <>
+        <div className={`flex flex-col relative rounded-t-3xl ${gameOver && "animate-boardWinAnimation"}`}>
             <BingoBoardHeader />
             <div className="h-[300px] w-[300px] max-h-full max-w-full grid relative" style={{gridTemplateColumns: `repeat(${matrixDim || 5}, minmax(0, 1fr))`}}>
                 {[...Array(matrixDim * matrixDim).keys()].map((_, index) => (
@@ -239,8 +250,12 @@ const BingoBoard = ({ user, setUser, resetUserReadyState }) => {
                     </div>
                 ))}
             </div>
-            <StatusBar gameStarted={gameStarted} myTurn={myTurn} turnMessage={turnMessage} isUserReady={user?.readyToStart} shuffleData={() => setShuffledData(() => shuffle())} resetMarked={resetMarked}/>
+            <StatusBar gameStarted={gameStarted} myTurn={myTurn} turnMessage={statusMessage} isUserReady={user?.readyToStart} shuffleData={() => setShuffledData(() => shuffle())} resetMarked={resetMarked} showStatusBar={!gameOver} />
         </div>
+        <div className={`${gameOver ? "animate-winMessageAnimation": "hidden"} ${statusMessage === "You Win!"? "bg-violet-500" : "bg-red-500"} absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mb-[60px] w-[310px] h-[60px] mt-[30px] flex justify-center items-center`}>
+            <span className="text-2xl text-white font-semibold uppercase tracking-widest">{statusMessage}</span>
+        </div>
+        </>
     );
 };
 
