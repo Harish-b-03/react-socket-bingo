@@ -44,6 +44,7 @@ socketIO.on("connection", (socket) => {
         });
         const res = addUserToRoom({ userId: user.userId, roomId: roomId });
         if (!res.success) {
+            deleteUser(socket.id);
             socket.emit("joinRoomError", res.errorMessage);
             socket.emit(
                 "message",

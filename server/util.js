@@ -104,6 +104,15 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
         };
     }
 
+    if(roomDetails.gameStarted){
+        return {
+            status: 403, // Forbidden status
+            success: false,
+            errorCode: "gameRunning",
+            errorMessage: `Game has already started. Could not join #${roomId}. Please wait till the game ends.`,
+        };
+    }
+
     // ToDo: Dont add the user to a room where game is still going on or dont allow the new users to play in the current match
     users.set(userId, { ...users.get(userId), roomId: roomId });
     
