@@ -46,8 +46,10 @@ const InputModal = ({ setUser }) => {
 		};
 	}, []);
 
-	const onSubmit = () => {
-		if (name.trim === "" || roomId.trim() === "") return;
+	const onSubmit = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!(name.trim() && roomId.trim())) return;
 
 		socket.emit("joinRoom", name.trim(), roomId.trim());
 	};
@@ -58,13 +60,7 @@ const InputModal = ({ setUser }) => {
 				showModal ? "opacity-100" : "opacity-0 pointer-events-none"
 			} overflow-y-auto overflow-x-hidden fixed top-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-full bg-[rgba(0,0,0,0.5)] transition-all duration-300`}
 		>
-			<div
-				onClick={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-				}}
-				className="relative p-4 w-full max-w-md max-h-full"
-			>
+			<div className="relative p-4 w-full max-w-md max-h-full">
 				<div className="relative bg-white rounded-lg shadow ">
 					<div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
 						<h3 className="text-xl font-semibold text-gray-900">
@@ -72,7 +68,11 @@ const InputModal = ({ setUser }) => {
 						</h3>
 					</div>
 					<div className="p-4 md:p-5">
-						<form className="space-y-4" action="#">
+						<form
+							className="space-y-4"
+							action="#"
+							onSubmit={onSubmit}
+						>
 							<div>
 								<label className="block mb-2 text-sm font-medium text-gray-900">
 									Your name
@@ -83,6 +83,7 @@ const InputModal = ({ setUser }) => {
 										className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2.5"
 										placeholder="Enter your name"
 										required
+										autoFocus
 									/>
 								</label>
 							</div>
@@ -109,13 +110,8 @@ const InputModal = ({ setUser }) => {
 								</label>
 							</div>
 							<button
-								disabled={
-									!(
-										name.trim() !== "" &&
-										roomId.trim() !== ""
-									)
-								}
-								onClick={() => onSubmit()}
+								disabled={!(name.trim() && roomId.trim())}
+								type="submit"
 								className="w-full text-white bg-violet-700 hover:bg-violet-800 focus:ring-4 focus:outline-none focus:ring-violet-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:bg-violet-300"
 							>
 								Play
