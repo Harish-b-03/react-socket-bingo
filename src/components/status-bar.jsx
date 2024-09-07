@@ -1,4 +1,7 @@
 import { socket } from "../socket";
+import ShareIcon from "./icons/share-icon";
+import { RWebShare } from "react-web-share";
+import ShuffleIcon from "./icons/shuffle-icon";
 
 const StatusBar = ({
 	gameStarted,
@@ -6,8 +9,7 @@ const StatusBar = ({
 	turnMessage,
 	isUserReady,
 	shuffleData,
-	resetMarked,
-	showStatusBar
+	showStatusBar,
 }) => {
 	const getStatusMessage = () => {
 		if (gameStarted) {
@@ -28,9 +30,10 @@ const StatusBar = ({
 			" my-3 text-center transition-all duration-300 ease-in-out rounded-full ";
 
 		if (gameStarted) {
-			styles += " w-[300px] ";
+			styles += " w-[300px]  py-1";
 			if (myTurn) {
-				styles += " py-1 text-white bg-violet-500 font-semibold capitalize tracking-widest ";
+				styles +=
+					" py-1 text-white bg-violet-500 font-semibold capitalize tracking-widest ";
 			}
 		} else if (isUserReady) {
 			styles +=
@@ -44,10 +47,17 @@ const StatusBar = ({
 	};
 
 	return (
-		<div className={`w-[300px] mt-3 flex justify-evenly items-center ${!showStatusBar && 'hidden'}`}>
+		<div
+			className={`w-[300px] mt-3 px-4 flex items-center ${
+				!showStatusBar && "hidden"
+			} ${isUserReady ? "justify-center" : "justify-between"}`}
+		>
 			{!gameStarted && !isUserReady && (
-				<button onClick={() => resetMarked()} className="m-3">
-					Reset
+				<button
+					onClick={shuffleData}
+					className="w-[36px] h-[36px] p-1 hover:text-violet-700"
+				>
+					<ShuffleIcon />
 				</button>
 			)}
 			<button
@@ -65,44 +75,19 @@ const StatusBar = ({
 				{getStatusMessage()}
 			</button>
 			{!gameStarted && !isUserReady && (
-				<button onClick={shuffleData} className="m-3">
-					Shuffle
-				</button>
-			)}
-
-			{/* {gameStarted ? (
-				myTurn ? (
-					<span>Your Turn</span>
-				) : (
-					<span>{turnMessage}</span>
-				)
-			) : isUserReady ? (
-				<button
-					onClick={() => {
-						socket.emit("startGame");
+				<RWebShare
+					data={{
+						text: "Hey! Join me to play Bingo. Here's the room link:",
+						url: "https://react-socket-bingo.vercel.app/",
+						title: "Share room link",
 					}}
-					className="m-3 px-14 py-2 min-w-[120px] text-center text-white bg-violet-500 border border-violet-600 rounded-full active:text-violet-500 hover:bg-violet-600 focus:outline-none focus:ring"
+					onClick={() => {}}
 				>
-					Start
-				</button>
-			) : (
-				<>
-					<button onClick={() => resetMarked()} className="m-3">
-						Reset
+					<button className="w-[36px] h-[36px] p-1.5 hover:text-violet-700">
+						<ShareIcon />
 					</button>
-					<button
-						onClick={() => {
-							socket.emit("playerReadyToStart");
-						}}
-						className="m-3 px-6 py-2 min-w-[120px] text-center text-white bg-violet-500 border border-violet-600 rounded-full active:text-violet-500 hover:bg-violet-600 focus:outline-none focus:ring"
-					>
-						Ready
-					</button>
-					<button onClick={shuffleData} className="m-3">
-						Shuffle
-					</button>
-				</>
-			)} */}
+				</RWebShare>
+			)}
 		</div>
 	);
 };

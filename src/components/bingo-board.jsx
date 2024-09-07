@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import StatusBar from "./status-bar";
 import BingoBoardHeader from "./bingo-board-header";
 import WinMessage from "./win-message";
-import Topbar from "./topbar";
 
 const shuffle = () => {
 	const array = [...Array(26).keys()].slice(1);
@@ -29,7 +28,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 	const [myTurn, setMyTurn] = useState(false);
 	const [statusMessage, setStatusMessage] = useState(""); // this state variable is used to store turn message, like "Your turn", "Player1's turn", and win message like "You win" and "You Lost"
 	const [matrixDim] = useState(5);
-	const [gameOver, setGameOver] = useState(false); // we can't  use gameStarted variable to check whether the game is over or not, as we have many game status like "player not ready and game not started". "player ready", "game started". So, using this variable.
+	const [gameOver, setGameOver] = useState(false); // we can't use gameStarted variable to check whether the game is over or not, as we have many game status like "player not ready and game not started". "player ready", "game started". So, using this variable.
 	const gameResetTimeoutRef = useRef();
 	const shuffledDataRef = useRef();
 	shuffledDataRef.current = shuffledData;
@@ -205,6 +204,12 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 
 	const mark = (index, markRequestFromServer = false) => {
 		if (!socket.connected) return;
+		if (
+			(!markRequestFromServer && !myTurn) ||
+			(!markRequestFromServer && marked[index]) ||
+			!gameStarted
+		)
+			return;
 
 		if (!markRequestFromServer) {
 			// if player marks a number then send it to other players.
@@ -237,7 +242,6 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 					gameOver && "animate-boardWinAnimation"
 				}`}
 			>
-				<Topbar user={user} />
 				<BingoBoardHeader />
 				<div
 					className="h-[300px] w-[300px] max-h-full max-w-full grid relative"
@@ -249,7 +253,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 				>
 					{[...Array(matrixDim * matrixDim).keys()].map(
 						(_, index) => (
-							<div
+							<button
 								key={`data-${index}`}
 								className={`relative cursor-pointer flex items-center justify-center border border-gray-200 select-none ${
 									marked[index] || !myTurn
@@ -280,7 +284,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 								>
 									x
 								</div>
-							</div>
+							</button>
 						)
 					)}
 				</div>
@@ -290,7 +294,6 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 					turnMessage={statusMessage}
 					isUserReady={user?.readyToStart}
 					shuffleData={() => setShuffledData(() => shuffle())}
-					resetMarked={resetMarked}
 					showStatusBar={!gameOver}
 				/>
 			</div>

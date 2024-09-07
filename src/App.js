@@ -5,6 +5,7 @@ import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import InputModal from "./components/input-modal";
 import { isMobile } from "react-device-detect";
+import Topbar from "./components/topbar";
 
 const App = () => {
 	const [connected, setConnected] = useState(false);
@@ -46,11 +47,14 @@ const App = () => {
 			{connected ? (
 				<div className="h-svh w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
 					{user !== null && (
-						<BingoBoard
-							user={user}
-							updateUser={updateUser}
-							resetUserReadyState={resetUserReadyState}
-						/>
+						<div className="flex flex-col">
+							<Topbar user={user} />
+							<BingoBoard
+								user={user}
+								updateUser={updateUser}
+								resetUserReadyState={resetUserReadyState}
+							/>
+						</div>
 					)}
 					<InputModal setUser={setUser} />
 				</div>
@@ -59,7 +63,15 @@ const App = () => {
 					Connecting to the server...
 				</div>
 			)}
-			<ToastContainer position={isMobile? "bottom-center" : "top-right"} autoClose={2000} pauseOnFocusLoss={false} transition={Slide} stacked style={{transform: isMobile && "scale(0.75)"}} draggablePercent={60}/>
+			<ToastContainer
+				position={isMobile ? "bottom-center" : "top-right"}
+				autoClose={2000}
+				pauseOnFocusLoss={false}
+				transition={Slide}
+				stacked
+				style={{ transform: isMobile && "scale(0.75)" }}
+				draggablePercent={60}
+			/>
 		</>
 	);
 };
