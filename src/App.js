@@ -47,7 +47,7 @@ const App = () => {
 			{connected ? (
 				<div className="h-svh w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
 					{user !== null && (
-						<div className="flex flex-col">
+						<div className="flex flex-col justify-center items-center">
 							<Topbar user={user} />
 							<BingoBoard
 								user={user}

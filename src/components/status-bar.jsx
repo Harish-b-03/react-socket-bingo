@@ -1,7 +1,8 @@
 import { socket } from "../socket";
-import ShareIcon from "./icons/share-icon";
-import { RWebShare } from "react-web-share";
-import ShuffleIcon from "./icons/shuffle-icon";
+import ShuffleButton from "./atomic/shuffle-button";
+import ShareButton from "./atomic/share-button";
+import PlayersButton from "./atomic/players-button";
+import SettingsButton from "./atomic/settings-button";
 
 const StatusBar = ({
 	gameStarted,
@@ -48,18 +49,14 @@ const StatusBar = ({
 
 	return (
 		<div
-			className={`w-[300px] mt-3 px-4 flex items-center ${
+			className={`w-[380px] mt-8 flex items-center ${
 				!showStatusBar && "hidden"
 			} ${isUserReady ? "justify-center" : "justify-between"}`}
 		>
 			{!gameStarted && !isUserReady && (
-				<button
-					onClick={shuffleData}
-					className="w-[36px] h-[36px] p-1 hover:text-violet-700"
-				>
-					<ShuffleIcon />
-				</button>
+				<ShuffleButton onClick={shuffleData} />
 			)}
+			{!gameStarted && !isUserReady && <PlayersButton />}
 			<button
 				onClick={() => {
 					if (gameStarted) return;
@@ -74,20 +71,8 @@ const StatusBar = ({
 			>
 				{getStatusMessage()}
 			</button>
-			{!gameStarted && !isUserReady && (
-				<RWebShare
-					data={{
-						text: "Hey! Join me to play Bingo. Here's the room link:",
-						url: "https://react-socket-bingo.vercel.app/",
-						title: "Share room link",
-					}}
-					onClick={() => {}}
-				>
-					<button className="w-[36px] h-[36px] p-1.5 hover:text-violet-700">
-						<ShareIcon />
-					</button>
-				</RWebShare>
-			)}
+			{!gameStarted && !isUserReady && <ShareButton />}
+			{!gameStarted && !isUserReady && <SettingsButton />}
 		</div>
 	);
 };

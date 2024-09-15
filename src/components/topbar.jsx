@@ -4,7 +4,7 @@ import ClipboardIcon from "./icons/clipboard-icon";
 
 const Topbar = ({ user }) => {
 	return (
-		<div>
+		<div className="w-[300px]">
 			<CopyToClipboard
 				text={`RoomID: ${user.roomId}`}
 				onCopy={() => {

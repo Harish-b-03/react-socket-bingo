@@ -238,7 +238,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 	return (
 		<>
 			<div
-				className={`flex flex-col relative rounded-t-3xl ${
+				className={`flex flex-col justify-center items-center relative rounded-t-3xl ${
 					gameOver && "animate-boardWinAnimation"
 				}`}
 			>
