@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import { toast } from "react-toastify";
 import { useUserContext } from "../contexts/user-context";
+import { useThemeContext } from "../contexts/theme-context";
 
 const InputModal = () => {
 	const { updateUser } = useUserContext();
@@ -10,6 +11,7 @@ const InputModal = () => {
 	const [roomId, setRoomId] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
 	const [prefetchedUrl, setPrefetchedUrl] = useState(false);
+	const { theme } = useThemeContext();
 
 	useEffect(() => {
 		const url = new URL(window.location);
@@ -60,7 +62,9 @@ const InputModal = () => {
 		<div
 			className={`${
 				showModal ? "opacity-100" : "opacity-0 pointer-events-none"
-			} overflow-y-auto overflow-x-hidden fixed top-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-full bg-[rgba(0,0,0,0.5)] transition-all duration-300`}
+			} overflow-y-auto overflow-x-hidden fixed top-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-full ${
+				theme !== "dark" ? "bg-[rgba(0,0,0,0.5)]" : ""
+			} transition-all duration-300`}
 		>
 			<div className="relative p-4 w-full max-w-md max-h-full">
 				<div className="relative bg-white rounded-lg shadow ">

@@ -1,13 +1,11 @@
 import ShuffleIcon from "../icons/shuffle-icon";
+import ButtonWrapper from "./button-wrapper";
 
-const ShuffleButton = ({onClick}) => {
+const ShuffleButton = ({ onClick }) => {
 	return (
-		<button
-			onClick={onClick}
-			className="w-[36px] h-[36px] p-1 hover:text-violet-700"
-		>
+		<ButtonWrapper onClick={onClick}>
 			<ShuffleIcon />
-		</button>
+		</ButtonWrapper>
 	);
 };
 

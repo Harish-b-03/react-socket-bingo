@@ -1,7 +1,7 @@
 
 const BingoBoardHeader = () => {
 	return (
-		<div className="w-[300px] flex border border-gray-200 rounded-t-3xl box-border">
+		<div className="w-[300px] flex border border-themed-borderColor text-themed-textColor rounded-t-3xl box-border">
 			{["B", "i", "n", "g", "o"].map((letter, index) => (
 				<div
 					key={`letter-${index}`}

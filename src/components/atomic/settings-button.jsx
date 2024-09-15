@@ -1,10 +1,11 @@
 import SettingsIcon from "../icons/settings-icon";
+import ButtonWrapper from "./button-wrapper";
 
 const SettingsButton = () => {
 	return (
-		<button className="w-[36px] h-[36px] p-1.5 hover:text-violet-700">
+		<ButtonWrapper>
 			<SettingsIcon />
-		</button>
+		</ButtonWrapper>
 	);
 };
 

@@ -1,5 +1,6 @@
 import { RWebShare } from "react-web-share";
 import ShareIcon from "../icons/share-icon";
+import ButtonWrapper from "./button-wrapper";
 
 const ShareButton = () => {
 	return (
@@ -11,9 +12,9 @@ const ShareButton = () => {
 			}}
 			onClick={() => {}}
 		>
-			<button className="w-[36px] h-[36px] p-1.5 hover:text-violet-700">
+			<ButtonWrapper>
 				<ShareIcon />
-			</button>
+			</ButtonWrapper>
 		</RWebShare>
 	);
 };

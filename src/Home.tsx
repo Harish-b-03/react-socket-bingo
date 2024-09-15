@@ -1,16 +1,37 @@
 import { useEffect, useState } from "react";
 import BingoBoard from "./components/bingo-board";
 import { socket } from "./socket";
-import { Slide, ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import InputModal from "./components/input-modal";
-import { isMobile } from "react-device-detect";
 import Topbar from "./components/topbar";
 import { useUserContext } from "./contexts/user-context";
+import { useThemeContext } from "./contexts/theme-context";
 
 const Home: React.FC = () => {
 	const [connected, setConnected] = useState(false);
 	const { user } = useUserContext();
+	const { theme, themeVariables } = useThemeContext();
+	
+	const posterThemedStyles =
+		theme === "galaxyMoon"
+			? {
+				background: "url(https://img.freepik.com/free-vector/outer-space-game-background_107791-29708.jpg?w=1380&t=st=1726311359~exp=1726311959~hmac=47e6e3d552409d7277994c277a82e8f86762711637b4773c0618bd6d4e8fdd3f)",
+				// background: "url(https://img.freepik.com/free-vector/neon-lights-background-theme_52683-44625.jpg?w=1380&t=st=1726311264~exp=1726311864~hmac=109d8d4a3caa1f43e580372b725bee07f653c669a0c2f3871cd72c6fbdab7417)",
+				// background: "url(https://img.freepik.com/free-vector/pink-neon-background_53876-91656.jpg?w=1380&t=st=1726310597~exp=1726311197~hmac=5ed0dda23aad18e98ad81b2f62ee62bc50230c1e2dfaffe655a19c62a6315e8a)",
+				"background-size": "cover",
+				"background-repeat": "no-repeat",
+			  }
+			: {};
+	const themedStyles =
+		theme !== "light"
+			? {
+					boxShadow: "var(--box-shadow)",
+					"backdrop-filter": "blur(var(--backdrop-blur))",
+					"border-radius": "10px",
+					border: "1px solid var(--border-color)",
+					padding: "60px 40px 40px 40px",
+			  }
+			: {};
 
 	const onConnect = () => {
 		setConnected(true);
@@ -32,9 +53,15 @@ const Home: React.FC = () => {
 
 	if (connected) {
 		return (
-			<div className="h-svh w-screen overflow-auto overflow-x-hidden flex justify-center items-center">
+			<div
+				className={`h-svh w-screen overflow-auto overflow-x-hidden flex justify-center items-center bg-themed-poster theme-${theme}`}
+				style={{...posterThemedStyles, ...themeVariables}}
+			>
 				{user && (
-					<div className="flex flex-col justify-center items-center">
+					<div
+						className="flex flex-col bg-themed-boardBg justify-center items-center"
+						style={themedStyles}
+					>
 						<Topbar />
 						<BingoBoard />
 					</div>

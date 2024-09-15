@@ -1,8 +1,36 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-	content: ["./src/**/*.{html,js,jsx,ts,tsx}"],
+	content: ["./src/**/*.{html,js,jsx,ts,tsx}", "./*.{html,css,js,jsx,ts}"],
 	theme: {
 		extend: {
+			backgroundColor: {
+				themed: {
+					poster: 'var(--poster-bg)',
+					boardBg: 'var(--board-bg)',
+				}
+			},
+			borderColor: {
+				themed: {
+					borderColor: 'var(--border-color)',
+					borderColorHover: 'var(--border-color-hover)',
+				}
+			},
+			backdropBlur: {
+				themed: {
+					blur: 'var(--backdrop-blur)',
+				}
+			},
+			boxShadow: {
+				themed: {
+					boxShadow: 'var(--box-shadow)',
+				}
+			},
+			colors: {
+				themed: {
+					textColor: 'var(--text-color)',
+					textColorHover: 'var(--text-color-hover)',
+				}
+			},
 			keyframes: {
 				boardWinKeyframe: {
 					"60%": {

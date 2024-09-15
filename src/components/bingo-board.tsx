@@ -6,6 +6,7 @@ import BingoBoardHeader from "./bingo-board-header";
 import WinMessage from "./win-message";
 import { UserType, useUserContext } from "../contexts/user-context";
 import { useGameContext } from "../contexts/game-context";
+import { useThemeContext } from "../contexts/theme-context";
 
 const BingoBoard = () => {
 	const [matrixDim] = useState<number>(5);
@@ -15,19 +16,20 @@ const BingoBoard = () => {
 		gameOver,
 		gameStarted,
 		lastChecked,
-		marked,
 		myTurn,
 		resetGame,
 		shuffledData,
 		updateGameOver,
 		updateGameStarted,
 		updateLastChecked,
-		updateMarked,
 		updateMyTurn,
 		updateStatusMessage,
 	} = useGameContext();
 
+	const { theme } = useThemeContext();
+
 	const shuffledDataRef = useRef<number[][]>(shuffledData);
+	const [marked, setMarked] = useState<number[]>(Array(25).fill(0));
 
 	const resetUserReadyState = (status = false) => {
 		if (!user) return;
@@ -110,7 +112,6 @@ const BingoBoard = () => {
 				break;
 			}
 		}
-
 		if (markedNumberIndex === -1) {
 			// just extra check
 			toast(
@@ -213,7 +214,6 @@ const BingoBoard = () => {
 			!gameStarted
 		)
 			return;
-
 		if (!markRequestFromServer) {
 			// if player marks a number then send it to other players.
 			// if other player is marking a number then don't send the same to other players again
@@ -223,29 +223,28 @@ const BingoBoard = () => {
 			);
 		}
 
-		switch (index) {
-			case 0:
-				updateMarked([1, ...marked.slice(1)]);
-				break;
-			case marked.length - 1:
-				updateMarked([...marked.slice(0, index), 1]);
-				break;
-			default:
-				updateMarked([
-					...marked.slice(0, index),
-					1,
-					...marked.slice(index + 1, marked.length),
-				]);
-				break;
-		}
-	};
+		// array is not updating correctly, if we are not using setter callback function.
+		setMarked((prev) => {
+			if (index === 0) {
+				return [1, ...prev.slice(1)];
+			}
+			if (index === prev.length - 1) {
+				return [...prev.slice(0, index), 1];
+			}
+			return [
+				...prev.slice(0, index),
+				1,
+				...prev.slice(index + 1, prev.length),
+			];
+		});
+	};	
 
 	return (
 		<>
 			<div
 				className={`flex flex-col justify-center items-center relative rounded-t-3xl ${
 					gameOver && "animate-boardWinAnimation"
-				}`}
+				} theme-${theme}`}
 			>
 				<BingoBoardHeader />
 				<div
@@ -260,7 +259,7 @@ const BingoBoard = () => {
 						(_, index) => (
 							<button
 								key={`data-${index}`}
-								className={`relative cursor-pointer flex items-center justify-center border border-gray-200 select-none ${
+								className={`relative cursor-pointer flex items-center justify-center border border-themed-borderColor text-themed-textColor select-none ${
 									marked[index] || !myTurn
 										? "z-0"
 										: "hover:bg-slate-100"

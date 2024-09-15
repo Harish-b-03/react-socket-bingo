@@ -21,7 +21,7 @@ const Topbar: React.FC = () => {
 	return (
 		<div className="w-[300px]">
 			<button
-				className="py-1 text-sm flex items-center float-right text-gray-600 font-light cursor-pointer"
+				className="py-1 text-sm flex items-center float-right text-themed-textColor font-light cursor-pointer"
 				onClick={copyToClipboard}
 			>
 				{/* <span className="-mb-1">{user.userName}</span> */}
