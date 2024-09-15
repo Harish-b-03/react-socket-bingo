@@ -3,15 +3,16 @@ import ShuffleButton from "./atomic/shuffle-button";
 import ShareButton from "./atomic/share-button";
 import PlayersButton from "./atomic/players-button";
 import SettingsButton from "./atomic/settings-button";
+import { useGameContext } from "../contexts/game-context";
+import { useUserContext } from "../contexts/user-context";
 
-const StatusBar = ({
-	gameStarted,
-	myTurn,
-	turnMessage,
-	isUserReady,
-	shuffleData,
-	showStatusBar,
-}) => {
+const StatusBar = () => {
+	const { gameStarted, gameOver, myTurn, turnMessage, updateShuffledData } =
+		useGameContext();
+	const { user } = useUserContext();
+
+	const isUserReady = user?.readyToStart;
+
 	const getStatusMessage = () => {
 		if (gameStarted) {
 			if (myTurn) {
@@ -47,14 +48,16 @@ const StatusBar = ({
 		return styles;
 	};
 
+	if (!user) return;
+
 	return (
 		<div
 			className={`w-[380px] mt-8 flex items-center ${
-				!showStatusBar && "hidden"
+				gameOver && "hidden"
 			} ${isUserReady ? "justify-center" : "justify-between"}`}
 		>
 			{!gameStarted && !isUserReady && (
-				<ShuffleButton onClick={shuffleData} />
+				<ShuffleButton onClick={updateShuffledData} />
 			)}
 			{!gameStarted && !isUserReady && <PlayersButton />}
 			<button

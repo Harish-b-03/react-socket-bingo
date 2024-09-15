@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"target": "es2015",
+		"outDir": "./dist", // Specify the output folder for compiled JavaScript
+		"declaration": true,
+
+		"allowJs": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"noEmit": true,
+		"noFallthroughCasesInSwitch": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true
+	},
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.tsx",
+		"./src/**/*.js",
+		"./src/**/*.jsx"
+	] // Specify the path to your TypeScript files
+}

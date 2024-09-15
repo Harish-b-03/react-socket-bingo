@@ -1,5 +1,8 @@
+import { useGameContext } from "../contexts/game-context";
 
-const WinMessage = ({gameOver, statusMessage}) => {
+const WinMessage = () => {
+	const { gameOver, statusMessage } = useGameContext();
+
 	return (
 		<div
 			className={`${

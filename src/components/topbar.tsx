@@ -1,8 +1,12 @@
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 import ClipboardIcon from "./icons/clipboard-icon";
+import { useUserContext } from "../contexts/user-context";
 
-const Topbar = ({ user }) => {
+const Topbar = () => {
+	const { user } = useUserContext();
+	if(!user) return;
+	
 	return (
 		<div className="w-[300px]">
 			<CopyToClipboard

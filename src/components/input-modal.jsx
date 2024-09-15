@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import { toast } from "react-toastify";
+import { useUserContext } from "../contexts/user-context";
 
-const InputModal = ({ setUser }) => {
+const InputModal = () => {
+	const { updateUser } = useUserContext();
 	const [showModal, setShowModal] = useState(true);
 	const [name, setName] = useState("");
 	const [roomId, setRoomId] = useState("");
@@ -35,7 +37,7 @@ const InputModal = ({ setUser }) => {
 		});
 
 		socket.on("joinedRoom", (user) => {
-			setUser(user);
+			updateUser(user);
 			toast(`Joined room (#${user.roomId})`);
 			setShowModal(false);
 		});

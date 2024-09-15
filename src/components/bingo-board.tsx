@@ -4,34 +4,38 @@ import { toast } from "react-toastify";
 import StatusBar from "./status-bar";
 import BingoBoardHeader from "./bingo-board-header";
 import WinMessage from "./win-message";
+import { UserType, useUserContext } from "../contexts/user-context";
+import { useGameContext } from "../contexts/game-context";
 
-const shuffle = () => {
-	const array = [...Array(26).keys()].slice(1);
-	for (let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[array[i], array[j]] = [array[j], array[i]];
-	}
-	return [
-		array.slice(0, 5),
-		array.slice(5, 10),
-		array.slice(10, 15),
-		array.slice(15, 20),
-		array.slice(20, 25),
-	];
-};
+const BingoBoard = () => {
+	const [matrixDim] = useState<number>(5);
+	const gameResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>();
+	const { user, updateUser } = useUserContext();
+	const {
+		gameOver,
+		gameStarted,
+		lastChecked,
+		marked,
+		myTurn,
+		resetGame,
+		shuffledData,
+		updateGameOver,
+		updateGameStarted,
+		updateLastChecked,
+		updateMarked,
+		updateMyTurn,
+		updateStatusMessage,
+	} = useGameContext();
 
-const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
-	const [marked, setMarked] = useState([...Array(25).keys()].fill(0));
-	const [lastChecked, setLastChecked] = useState(null);
-	const [shuffledData, setShuffledData] = useState(shuffle());
-	const [gameStarted, setGameStarted] = useState(false);
-	const [myTurn, setMyTurn] = useState(false);
-	const [statusMessage, setStatusMessage] = useState(""); // this state variable is used to store turn message, like "Your turn", "Player1's turn", and win message like "You win" and "You Lost"
-	const [matrixDim] = useState(5);
-	const [gameOver, setGameOver] = useState(false); // we can't use gameStarted variable to check whether the game is over or not, as we have many game status like "player not ready and game not started". "player ready", "game started". So, using this variable.
-	const gameResetTimeoutRef = useRef();
-	const shuffledDataRef = useRef();
-	shuffledDataRef.current = shuffledData;
+	const shuffledDataRef = useRef<number[][]>(shuffledData);
+
+	const resetUserReadyState = (status = false) => {
+		if (!user) return;
+
+		const newUserDetails: UserType = { ...user, readyToStart: status };
+		updateUser(newUserDetails);
+		toast("Reseting game");
+	};
 
 	const sendWonMessage = () => {
 		if (!socket.connected) return;
@@ -39,7 +43,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		socket.emit("iWonMessage", marked); // check the correctness in backend and get the won board to show in the win message
 	};
 
-	const checkIfWon = (index) => {
+	const checkIfWon = (index: number) => {
 		let sum;
 		let rowNo = Math.floor(index / matrixDim);
 		let colNo = index % matrixDim;
@@ -47,7 +51,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		// col sum
 		sum = 0;
 		for (let i = 0; i < matrixDim; i++) {
-			sum += marked.at(i * matrixDim + colNo);
+			sum += marked.at(i * matrixDim + colNo) ?? 0;
 		}
 		if (sum === matrixDim) {
 			sendWonMessage();
@@ -57,7 +61,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		// row sum
 		sum = 0;
 		for (let i = rowNo * matrixDim; i < (rowNo + 1) * matrixDim; i++) {
-			sum += marked.at(i);
+			sum += marked.at(i) ?? 0;
 		}
 		if (sum === matrixDim) {
 			sendWonMessage();
@@ -68,7 +72,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		if (colNo === rowNo) {
 			sum = 0;
 			for (let i = 0; i < matrixDim; i++) {
-				sum += marked.at(i * matrixDim + i);
+				sum += marked.at(i * matrixDim + i) ?? 0;
 			}
 			if (sum === matrixDim) {
 				sendWonMessage();
@@ -80,7 +84,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		if (rowNo + colNo === matrixDim - 1) {
 			sum = 0;
 			for (let i = 1; i <= matrixDim; i++) {
-				sum += marked.at(i * (matrixDim - 1));
+				sum += marked.at(i * (matrixDim - 1)) ?? 0;
 			}
 			if (sum === matrixDim) {
 				sendWonMessage();
@@ -89,7 +93,10 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		}
 	};
 
-	const onReflectMark = (data) => {
+	const onReflectMark = (data: {
+		markedNumber: number;
+		userName: string;
+	}) => {
 		let markedNumber = data.markedNumber;
 		// let userName = data.userName;
 		let markedNumberIndex = -1;
@@ -110,23 +117,14 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 				`Marked number (${markedNumber}) is not present in your bingo board`
 			);
 		} else {
-			setLastChecked(markedNumberIndex);
+			updateLastChecked(markedNumberIndex);
 			mark(markedNumberIndex, true);
-			// toast(`${userName} marked ${markedNumber}`);
+			//  TODO : change this to logs - toast(`${userName} marked ${markedNumber}`);
 		}
 	};
 
-	const resetMarked = () => {
-		setMarked([...Array(25).keys()].fill(0));
-	};
-
 	const onResetGame = () => {
-		setGameStarted(false);
-		setLastChecked(false);
-		setMyTurn(false);
-		setStatusMessage("");
-		setGameOver(false);
-		resetMarked();
+		resetGame();
 		resetUserReadyState();
 	};
 
@@ -143,8 +141,10 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		});
 
 		socket.on("gameStarted", (result) => {
+			if (!user) return;
+
 			if (result.success) {
-				setGameStarted(true);
+				updateGameStarted(true);
 				toast.success(
 					result.startedBy === user.userId
 						? "Game Started"
@@ -156,26 +156,28 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		});
 
 		socket.on("updateTurn", (result) => {
+			if (!user) return;
+
 			if (result.success) {
 				if (result.turn === user.userId) {
-					setMyTurn(true);
-					setStatusMessage("Your Turn");
+					updateMyTurn(true);
+					updateStatusMessage("Your Turn");
 				} else {
-					setMyTurn(false);
-					setStatusMessage(`${result.userName}'s turn`);
+					updateMyTurn(false);
+					updateStatusMessage(`${result.userName}'s turn`);
 				}
 			}
 		});
 
 		socket.on("win", (message) => {
 			// game is over
-			setGameStarted(false);
-			setGameOver(true);
+			updateGameStarted(false);
+			updateGameOver(true);
 			if (message === "You Win!") {
 				toast.success(message, { autoClose: 5000 });
-				setStatusMessage(message);
+				updateStatusMessage(message);
 			} else {
-				setStatusMessage("You Lost!");
+				updateStatusMessage("You Lost!");
 				toast.error("You Lost!", { autoClose: 5000 });
 			}
 		});
@@ -191,7 +193,8 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 			socket.off("updateTurn");
 			socket.off("win");
 			socket.off("resetGame");
-			clearTimeout(gameResetTimeoutRef.current);
+			gameResetTimeoutRef.current &&
+				clearTimeout(gameResetTimeoutRef.current);
 			gameResetTimeoutRef.current = null;
 		};
 	}, []);
@@ -202,7 +205,7 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 		checkIfWon(lastChecked);
 	}, [marked]);
 
-	const mark = (index, markRequestFromServer = false) => {
+	const mark = (index: number, markRequestFromServer = false) => {
 		if (!socket.connected) return;
 		if (
 			(!markRequestFromServer && !myTurn) ||
@@ -220,19 +223,21 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 			);
 		}
 
-		setMarked((prev) => {
-			if (index === 0) {
-				return [1, ...prev.slice(1)];
-			}
-			if (index === prev.length - 1) {
-				return [...prev.slice(0, index), 1];
-			}
-			return [
-				...prev.slice(0, index),
-				1,
-				...prev.slice(index + 1, prev.length),
-			];
-		});
+		switch (index) {
+			case 0:
+				updateMarked([1, ...marked.slice(1)]);
+				break;
+			case marked.length - 1:
+				updateMarked([...marked.slice(0, index), 1]);
+				break;
+			default:
+				updateMarked([
+					...marked.slice(0, index),
+					1,
+					...marked.slice(index + 1, marked.length),
+				]);
+				break;
+		}
 	};
 
 	return (
@@ -268,13 +273,15 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 									)
 										return;
 
-									setLastChecked(index);
+									updateLastChecked(index);
 									mark(index);
 								}}
 							>
-								{shuffledData
-									?.at(Math.floor(index / matrixDim))
-									.at(index % matrixDim)}
+								{
+									shuffledData[Math.floor(index / matrixDim)][
+										index % matrixDim
+									]
+								}
 								<div
 									className={`absolute left-0 top-0 h-[60px] w-[60px] flex justify-center text-5xl select-none z-20 transition-all duration-300 ease-in-out ${
 										marked[index]
@@ -288,16 +295,9 @@ const BingoBoard = ({ user, updateUser, resetUserReadyState }) => {
 						)
 					)}
 				</div>
-				<StatusBar
-					gameStarted={gameStarted}
-					myTurn={myTurn}
-					turnMessage={statusMessage}
-					isUserReady={user?.readyToStart}
-					shuffleData={() => setShuffledData(() => shuffle())}
-					showStatusBar={!gameOver}
-				/>
+				<StatusBar />
 			</div>
-			<WinMessage gameOver={gameOver} statusMessage={statusMessage} />
+			<WinMessage />
 		</>
 	);
 };
