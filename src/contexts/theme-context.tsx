@@ -47,7 +47,7 @@ const GALAXY_MOON_THEME_VARIABLES = {
 	"--backdrop-blur": "40px",
 	"--box-shadow": "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
 	"--text-color": "black",
-	"--text-color-hover": "rgb(109 40 217)",
+	"--text-color-hover": "rgba(255,255,255,0.7)",
 };
 
 export const ThemeProvider: React.FC<{ children: ReactElement }> = ({
@@ -60,11 +60,10 @@ export const ThemeProvider: React.FC<{ children: ReactElement }> = ({
 
 	const updateTheme = (value: ThemeType) => {
 		setTheme(value);
-		updateThemeVariables(value);
 	};
 
-	const updateThemeVariables = (value: ThemeType) => {
-		switch (value) {
+	useEffect(() => {
+		switch (theme) {
 			case "dark":
 				setThemeVariables(DARK_THEME_VARIABLES);
 				break;
@@ -75,8 +74,8 @@ export const ThemeProvider: React.FC<{ children: ReactElement }> = ({
 				setThemeVariables(DEFAULT_THEME_VARIABLES);
 				break;
 		}
-		setTheme(value);
-	};
+	}, [theme]);
+
 
 	// useEffect(() => {
 	//  // we will use galaxyMoon as the default theme

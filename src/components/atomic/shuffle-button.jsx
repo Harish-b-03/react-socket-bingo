@@ -3,9 +3,12 @@ import ButtonWrapper from "./button-wrapper";
 
 const ShuffleButton = ({ onClick }) => {
 	return (
-		<ButtonWrapper onClick={onClick}>
-			<ShuffleIcon />
-		</ButtonWrapper>
+		<ButtonWrapper
+			onClick={onClick}
+			content={<ShuffleIcon />}
+			tooltipContent={"Shuffle"}
+			showTooltipOnHover={true}
+		/>
 	);
 };
 

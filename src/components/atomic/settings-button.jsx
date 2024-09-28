@@ -3,9 +3,7 @@ import ButtonWrapper from "./button-wrapper";
 
 const SettingsButton = () => {
 	return (
-		<ButtonWrapper>
-			<SettingsIcon />
-		</ButtonWrapper>
+		<ButtonWrapper content={<SettingsIcon />} tooltipContent={"Settings"} />
 	);
 };
 

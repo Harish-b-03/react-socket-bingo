@@ -113,7 +113,6 @@ socketIO.on("connection", (socket) => {
             .to(roomId)
             .emit("win", `${resUser.data.user.userName} won`);
         const response = resetGame(roomId)
-        console.log("response", response)
         if(response.success){
             socket.emit("resetGame");
             socket.to(roomId).emit("resetGame");

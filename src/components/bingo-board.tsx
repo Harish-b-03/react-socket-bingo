@@ -262,7 +262,7 @@ const BingoBoard = () => {
 								className={`relative cursor-pointer flex items-center justify-center border border-themed-borderColor text-themed-textColor select-none ${
 									marked[index] || !myTurn
 										? "z-0"
-										: "hover:bg-slate-100"
+										: "hover:bg-[rgba(255,255,255,0.2)]"
 								}`}
 								onClick={() => {
 									if (

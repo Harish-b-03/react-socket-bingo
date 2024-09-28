@@ -16,9 +16,11 @@ const ShareButton = () => {
 			}}
 			onClick={() => {}}
 		>
-			<ButtonWrapper>
-				<ShareIcon />
-			</ButtonWrapper>
+			<ButtonWrapper
+				content={<ShareIcon />}
+				tooltipContent={"Share"}
+				showTooltipOnHover={true}
+			/>
 		</RWebShare>
 	);
 };
