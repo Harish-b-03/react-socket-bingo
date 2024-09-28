@@ -15,7 +15,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-	theme: "light",
+	theme: "galaxyMoon",
 	updateTheme: (val: ThemeType) => {},
 	themeVariables: {},
 });
@@ -78,18 +78,19 @@ export const ThemeProvider: React.FC<{ children: ReactElement }> = ({
 		setTheme(value);
 	};
 
-	useEffect(() => {
-		if (
-			window.matchMedia &&
-			window.matchMedia("(prefers-color-scheme: dark)").matches
-		) {
-			updateTheme("dark");
-			updateThemeVariables("dark");
-		} else {
-			updateTheme("galaxyMoon");
-			updateThemeVariables("galaxyMoon");
-		}
-	}, []);
+	// useEffect(() => {
+	//  // we will use galaxyMoon as the default theme
+	// 	if (
+	// 		window.matchMedia &&
+	// 		window.matchMedia("(prefers-color-scheme: dark)").matches
+	// 	) {
+	// 		updateTheme("dark");
+	// 		updateThemeVariables("dark");
+	// 	} else {
+	// 		updateTheme("galaxyMoon");
+	// 		updateThemeVariables("galaxyMoon");
+	// 	}
+	// }, []);
 
 	return (
 		<ThemeContext.Provider value={{ theme, updateTheme, themeVariables }}>

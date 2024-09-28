@@ -78,17 +78,18 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
             gameStarted: false,
             currentTurn: -1,
         });
-        displayUsers();
-        displayRooms();
+        // displayUsers();
+        // displayRooms();
         users.set(userId, { ...users.get(userId), roomId: roomId });
 
+        const playerNames = getPlayersByRoomId(roomId);
+        
         return {
             status: 200,
             success: true,
             data: {
                 message: `Created room (#${roomId})`,
-                room: rooms.get(roomId),
-                user: users.get(userId),
+                user: {...users.get(userId), roomMates: playerNames},
             },
         };
     }
@@ -120,15 +121,15 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
         ...roomDetails,
         players: [...roomDetails.players, userId]
     });
-    displayRooms()
+    // displayRooms()
+    const playerNames = getPlayersByRoomId(roomId);
 
     return {
         status: 200,
         success: true,
         data: {
             message: `Joined room (#${roomId})`,
-            room: rooms.get(roomId),
-            user: users.get(userId),
+            user: {...users.get(userId), roomMates: playerNames },
         },
     };
 };
@@ -402,18 +403,22 @@ const deleteUser = (socketId = null) => {
 
     const resUser = getUserBySocketId(socketId);
     
-    if(!resUser.success) return;
+    if(!resUser.success) return {success: false, status: 404, data: {errorMessage: "User not found"}};
     
     let user = resUser.data.user;
 
     if (user) {
-
+        let roomId = user.roomId;
         users.delete(user.userId);
         removeUserFromRoom(user.userId, user.roomId);
-
+        const playerNames = getPlayersByRoomId(roomId);
         return {
             status: 200,
-            success: true
+            success: true,
+            data: {
+                message: `${user.userName} left the room`,
+                playerNames: playerNames,
+            },
         };
     }
 
@@ -447,6 +452,24 @@ const removeUserFromRoom = (userId, roomId) => {
         }
     }
 
+}
+
+const getPlayersByRoomId = (roomId) => {
+    if(!roomId) return [];
+
+    const roomDetails = rooms.get(roomId);
+    
+    if(!roomDetails) return [];
+    
+    const playerNames = [];
+
+    roomDetails.players.forEach((playerId) => {
+        let playerDetails = users.get(playerId);
+
+        if(playerDetails) playerNames.push(playerDetails.userName);
+    })
+
+    return playerNames;
 }
 
 const displayRooms = () => {

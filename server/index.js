@@ -54,7 +54,9 @@ socketIO.on("connection", (socket) => {
         }
         socket.join(roomId);
         socket.emit("joinedRoom", res.data.user);
+        console.log(`🔥: ${user.userName} joined the room. User: ${JSON.stringify(res.data.user)}`)
         socket.broadcast.to(roomId).emit("message", `${user.userName} joined`);
+        socket.broadcast.to(roomId).emit("updateRoommates", res.data.user.roomMates);
     });
 
     socket.on("playerReadyToStart", () => {
@@ -151,10 +153,17 @@ socketIO.on("connection", (socket) => {
     socket.on("disconnect", () => {
         // remove user from the room
         // delete user
-        deleteUser(socket.id);
-        console.log("🔥: A user disconnected");
-        displayRooms();
-        displayUsers();
+        let resRoomId = getRoomIdBySocketId(socket.id);
+        const res = deleteUser(socket.id);
+        
+        if(!resRoomId.success) return;
+        let roomId = resRoomId.data.roomId;
+
+        if(res.success){
+            console.log(`😭: ${res.data.message}. ${JSON.stringify(res.data.playerNames)} are in the room (#${roomId}) `);
+            socket.broadcast.to(roomId).emit("message", res.data.message);
+            socket.broadcast.to(roomId).emit("updateRoommates", res.data.playerNames);
+        }
     });
 });
 

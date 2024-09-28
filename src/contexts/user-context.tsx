@@ -13,6 +13,7 @@ export interface UserType {
 	socketId: string;
 	userId: string;
 	userName: string;
+	roomMates: string[];
 }
 
 interface UserContextType {

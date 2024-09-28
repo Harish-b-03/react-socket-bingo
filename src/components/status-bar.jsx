@@ -29,7 +29,7 @@ const StatusBar = () => {
 
 	const getStyles = () => {
 		let styles =
-			" my-3 text-center transition-all duration-300 ease-in-out rounded-full ";
+			" my-3 text-center transition-all duration-300 ease-in-out rounded-full h-[32px] flex justify-center items-center";
 
 		if (gameStarted) {
 			styles += " w-[300px]  py-1";

@@ -1,17 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BingoBoard from "./components/bingo-board";
 import { socket } from "./socket";
 import { toast } from "react-toastify";
 import InputModal from "./components/input-modal";
 import Topbar from "./components/topbar";
-import { useUserContext } from "./contexts/user-context";
+import { UserType, useUserContext } from "./contexts/user-context";
 import { useThemeContext } from "./contexts/theme-context";
 
 const Home: React.FC = () => {
 	const [connected, setConnected] = useState(false);
-	const { user } = useUserContext();
+	const { user, updateUser } = useUserContext();
 	const { theme, themeVariables } = useThemeContext();
-	
+	const userRef = useRef<UserType | null>();
+	userRef.current = user;
+
+	// TODO: terrible solution. refactor this
 	const posterThemedStyles =
 		theme === "galaxyMoon"
 			? {
@@ -41,13 +44,23 @@ const Home: React.FC = () => {
 		toast(message);
 	};
 
+	const onUpdateRoomMates = (value: string[]) => {
+		if(!userRef.current) return; 
+		
+		// we must use ref to get the current user value inside useEffect
+
+		updateUser({...userRef.current, roomMates: value});
+	}
+
 	useEffect(() => {
 		socket.on("connect", onConnect);
 		socket.on("message", onMessage);
+		socket.on("updateRoommates", onUpdateRoomMates);
 
 		return () => {
 			socket.off("connect");
 			socket.off("message");
+			socket.off("updateRoommates");
 		};
 	}, []);
 
