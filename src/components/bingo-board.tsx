@@ -95,28 +95,19 @@ const BingoBoard = () => {
 		}
 	};
 
-	const onReflectMark = (data: {
-		markedNumber: number;
-		userName: string;
-	}) => {
+	const onReflectMark = (data: { markedNumber: number; userName: string }) => {
 		let markedNumber = data.markedNumber;
 		// let userName = data.userName;
 		let markedNumberIndex = -1;
 		for (let i = 0; i < matrixDim * matrixDim; i++) {
-			if (
-				shuffledDataRef.current[Math.floor(i / matrixDim)][
-					i % matrixDim
-				] === markedNumber
-			) {
+			if (shuffledDataRef.current[Math.floor(i / matrixDim)][i % matrixDim] === markedNumber) {
 				markedNumberIndex = i;
 				break;
 			}
 		}
 		if (markedNumberIndex === -1) {
 			// just extra check
-			toast(
-				`Marked number (${markedNumber}) is not present in your bingo board`
-			);
+			toast(`Marked number (${markedNumber}) is not present in your bingo board`);
 		} else {
 			updateLastChecked(markedNumberIndex);
 			mark(markedNumberIndex, true);
@@ -146,11 +137,7 @@ const BingoBoard = () => {
 
 			if (result.success) {
 				updateGameStarted(true);
-				toast.success(
-					result.startedBy === user.userId
-						? "Game Started"
-						: result.notify
-				);
+				toast.success(result.startedBy === user.userId ? "Game Started" : result.notify);
 			} else {
 				toast.error(result.errorMessage);
 			}
@@ -194,8 +181,7 @@ const BingoBoard = () => {
 			socket.off("updateTurn");
 			socket.off("win");
 			socket.off("resetGame");
-			gameResetTimeoutRef.current &&
-				clearTimeout(gameResetTimeoutRef.current);
+			gameResetTimeoutRef.current && clearTimeout(gameResetTimeoutRef.current);
 			gameResetTimeoutRef.current = null;
 		};
 	}, []);
@@ -208,19 +194,11 @@ const BingoBoard = () => {
 
 	const mark = (index: number, markRequestFromServer = false) => {
 		if (!socket.connected) return;
-		if (
-			(!markRequestFromServer && !myTurn) ||
-			(!markRequestFromServer && marked[index]) ||
-			!gameStarted
-		)
-			return;
+		if ((!markRequestFromServer && !myTurn) || (!markRequestFromServer && marked[index]) || !gameStarted) return;
 		if (!markRequestFromServer) {
 			// if player marks a number then send it to other players.
 			// if other player is marking a number then don't send the same to other players again
-			socket.emit(
-				"mark",
-				shuffledData[Math.floor(index / matrixDim)][index % matrixDim]
-			);
+			socket.emit("mark", shuffledData[Math.floor(index / matrixDim)][index % matrixDim]);
 		}
 
 		// array is not updating correctly, if we are not using setter callback function.
@@ -231,13 +209,9 @@ const BingoBoard = () => {
 			if (index === prev.length - 1) {
 				return [...prev.slice(0, index), 1];
 			}
-			return [
-				...prev.slice(0, index),
-				1,
-				...prev.slice(index + 1, prev.length),
-			];
+			return [...prev.slice(0, index), 1, ...prev.slice(index + 1, prev.length)];
 		});
-	};	
+	};
 
 	return (
 		<>
@@ -250,49 +224,32 @@ const BingoBoard = () => {
 				<div
 					className="h-[300px] w-[300px] max-h-full max-w-full grid relative"
 					style={{
-						gridTemplateColumns: `repeat(${
-							matrixDim || 5
-						}, minmax(0, 1fr))`,
+						gridTemplateColumns: `repeat(${matrixDim || 5}, minmax(0, 1fr))`,
 					}}
 				>
-					{[...Array(matrixDim * matrixDim).keys()].map(
-						(_, index) => (
-							<button
-								key={`data-${index}`}
-								className={`relative cursor-pointer flex items-center justify-center border border-themed-borderColor text-themed-textColor select-none ${
-									marked[index] || !myTurn
-										? "z-0"
-										: "hover:bg-[rgba(255,255,255,0.2)]"
-								}`}
-								onClick={() => {
-									if (
-										!myTurn ||
-										marked[index] ||
-										!gameStarted
-									)
-										return;
+					{[...Array(matrixDim * matrixDim).keys()].map((_, index) => (
+						<button
+							key={`data-${index}`}
+							className={`relative flex items-center justify-center border border-themed-borderColor text-themed-textColor select-none transition-all duration-150 ${
+								marked[index] || !myTurn ? "z-0" : "hover:bg-[rgba(255,255,255,0.15)]"
+							} ${myTurn && "cursor-pointer"}`}
+							onClick={() => {
+								if (!myTurn || marked[index] || !gameStarted) return;
 
-									updateLastChecked(index);
-									mark(index);
-								}}
+								updateLastChecked(index);
+								mark(index);
+							}}
+						>
+							{shuffledData[Math.floor(index / matrixDim)][index % matrixDim]}
+							<div
+								className={`absolute left-0 top-0 h-[60px] w-[60px] flex justify-center text-5xl select-none z-20 transition-all duration-300 ease-in-out ${
+									marked[index] ? "opacity-100 hover:opacity-10" : " opacity-0"
+								}`}
 							>
-								{
-									shuffledData[Math.floor(index / matrixDim)][
-										index % matrixDim
-									]
-								}
-								<div
-									className={`absolute left-0 top-0 h-[60px] w-[60px] flex justify-center text-5xl select-none z-20 transition-all duration-300 ease-in-out ${
-										marked[index]
-											? "opacity-100 hover:opacity-10"
-											: " opacity-0"
-									}`}
-								>
-									x
-								</div>
-							</button>
-						)
-					)}
+								x
+							</div>
+						</button>
+					))}
 				</div>
 				<StatusBar />
 			</div>

@@ -5,7 +5,7 @@ import { useUserContext } from "../../contexts/user-context";
 
 const ShareButton = () => {
 	const { user } = useUserContext();
-	if (!user || !user.roomId) return;
+	if (!user?.roomId) return;
 
 	return (
 		<RWebShare
@@ -16,11 +16,7 @@ const ShareButton = () => {
 			}}
 			onClick={() => {}}
 		>
-			<ButtonWrapper
-				content={<ShareIcon />}
-				tooltipContent={"Share"}
-				showTooltipOnHover={true}
-			/>
+			<ButtonWrapper content={<ShareIcon />} tooltipContent={"Share"} showTooltipOnHover={true} />
 		</RWebShare>
 	);
 };

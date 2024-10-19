@@ -5,21 +5,24 @@ import PlayersButton from "./atomic/players-button";
 import SettingsButton from "./atomic/settings-button";
 import { useGameContext } from "../contexts/game-context";
 import { useUserContext } from "../contexts/user-context";
+import { RWebShare } from "react-web-share";
 
 const StatusBar = () => {
-	const { gameStarted, gameOver, myTurn, turnMessage, updateShuffledData } =
-		useGameContext();
+	const { gameStarted, gameOver, myTurn, statusMessage, updateShuffledData } = useGameContext();
 	const { user } = useUserContext();
 
 	const isUserReady = user?.readyToStart;
+	const showInviteFriendButton = isUserReady && user?.roomMates.length < 2;
 
 	const getStatusMessage = () => {
 		if (gameStarted) {
 			if (myTurn) {
 				return "Your Turn";
 			} else {
-				return turnMessage;
+				return statusMessage;
 			}
+		} else if (showInviteFriendButton) {
+			return "Invite friend!";
 		} else if (isUserReady) {
 			return "Start";
 		} else {
@@ -34,8 +37,7 @@ const StatusBar = () => {
 		if (gameStarted) {
 			styles += " w-[300px]  py-1";
 			if (myTurn) {
-				styles +=
-					" py-1 text-white bg-violet-500 font-semibold capitalize tracking-widest ";
+				styles += " py-1 text-white bg-violet-500 font-semibold capitalize tracking-widest ";
 			}
 		} else if (isUserReady) {
 			styles +=
@@ -52,28 +54,41 @@ const StatusBar = () => {
 
 	return (
 		<div
-			className={`w-[380px] mt-8 flex items-center ${
-				gameOver && "hidden"
-			} ${isUserReady ? "justify-center" : "justify-between"}`}
+			className={`w-[380px] mt-8 flex items-center ${gameOver && "hidden"} ${
+				isUserReady ? "justify-center" : "justify-between"
+			}`}
 		>
-			{!gameStarted && !isUserReady && (
-				<ShuffleButton onClick={updateShuffledData} />
-			)}
+			{!gameStarted && !isUserReady && <ShuffleButton onClick={updateShuffledData} />}
 			{!gameStarted && !isUserReady && <PlayersButton />}
-			<button
-				onClick={() => {
-					if (gameStarted) return;
+			{showInviteFriendButton ? (
+				<RWebShare
+					data={{
+						text: "Hey! Join me to play Bingo. Here's the room link:",
+						url: `https://react-socket-bingo.vercel.app/?roomId=${user?.roomId}`,
+						title: "Share room link",
+					}}
+					onClick={() => {}}
+				>
+					<button className={getStyles()} onClick={() => {}}>
+						{getStatusMessage()}
+					</button>
+				</RWebShare>
+			) : (
+				<button
+					onClick={() => {
+						if (gameStarted) return;
 
-					if (isUserReady) {
-						socket.emit("startGame");
-					} else {
-						socket.emit("playerReadyToStart");
-					}
-				}}
-				className={getStyles()}
-			>
-				{getStatusMessage()}
-			</button>
+						if (isUserReady) {
+							socket.emit("startGame");
+						} else {
+							socket.emit("playerReadyToStart");
+						}
+					}}
+					className={getStyles()}
+				>
+					{getStatusMessage()}
+				</button>
+			)}
 			{!gameStarted && !isUserReady && <ShareButton />}
 			{!gameStarted && !isUserReady && <SettingsButton />}
 		</div>

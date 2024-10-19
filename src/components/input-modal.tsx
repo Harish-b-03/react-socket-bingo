@@ -14,7 +14,7 @@ const InputModal = () => {
 	const { theme } = useThemeContext();
 
 	useEffect(() => {
-		const url = new URL(window.location);
+		const url = new URL(window.location.toString());
 		const roomId = url.searchParams.get("roomId");
 		let urlState = { urlPath: "/" };
 
@@ -50,7 +50,7 @@ const InputModal = () => {
 		};
 	}, []);
 
-	const onSubmit = (e) => {
+	const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
 		let userName = name.trim();
@@ -58,23 +58,27 @@ const InputModal = () => {
 
 		if (!(userName && roomName)) return;
 
-		const usernameRegex = /^[a-zA-Z0-9_.]{3,15}$/ // checks if the value is 3-15 characters long and contains only alphanumeric characters, underscore and periods
-		const checkAlphanumericCount = /(?=.*[a-zA-Z0-9])/ // checks if the value has atleast one alphanumeric character
+		const usernameRegex = /^[a-zA-Z0-9_.]{3,15}$/; // checks if the value is 3-15 characters long and contains only alphanumeric characters, underscore and periods
+		const checkAlphanumericCount = /(?=.*[a-zA-Z0-9])/; // checks if the value has atleast one alphanumeric character
 
-    	if(!usernameRegex.test(userName)){
-			setErrorMessage("Username must be 3-15 characters long and contain only alphanumeric characters, underscore and periods")
+		if (!usernameRegex.test(userName)) {
+			setErrorMessage(
+				"Username must be 3-15 characters long and contain only alphanumeric characters, underscore and periods"
+			);
 			return;
 		}
-		if(!checkAlphanumericCount.test(userName)){
-			setErrorMessage("Username must contain atleast one letter or digit")
+		if (!checkAlphanumericCount.test(userName)) {
+			setErrorMessage("Username must contain atleast one letter or digit");
 			return;
 		}
-		if(!usernameRegex.test(roomName)){
-			setErrorMessage("Room Name must be 3-15 characters long and contain only alphanumeric characters, underscore and periods")
+		if (!usernameRegex.test(roomName)) {
+			setErrorMessage(
+				"Room Name must be 3-15 characters long and contain only alphanumeric characters, underscore and periods"
+			);
 			return;
 		}
-		if(!checkAlphanumericCount.test(roomName)){
-			setErrorMessage("Room Name must contain atleast one letter or digit")
+		if (!checkAlphanumericCount.test(roomName)) {
+			setErrorMessage("Room Name must contain atleast one letter or digit");
 			return;
 		}
 
@@ -92,23 +96,15 @@ const InputModal = () => {
 			<div className="relative p-4 w-full max-w-md max-h-full">
 				<div className="relative bg-white rounded-lg shadow ">
 					<div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-						<h3 className="text-xl font-semibold text-gray-900">
-							Welcome to Bingo
-						</h3>
+						<h3 className="text-xl font-semibold text-gray-900">Welcome to Bingo</h3>
 					</div>
 					<div className="p-4 md:p-5">
-						<form
-							className="space-y-4"
-							action="#"
-							onSubmit={onSubmit}
-						>
+						<form className="space-y-4" action="#" onSubmit={onSubmit}>
 							<div>
 								<label className="block mb-2 text-sm font-medium text-gray-900">
-									Your name
+									<span>Your name</span>
 									<input
-										onChange={(e) =>
-											setName(e.target.value)
-										}
+										onChange={(e) => setName(e.target.value)}
 										className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2.5"
 										placeholder="Enter your name"
 										required
@@ -118,23 +114,17 @@ const InputModal = () => {
 							</div>
 							<div>
 								<label className="block mb-2 text-sm font-medium text-gray-900">
-									{prefetchedUrl
-										? "Joining room"
-										: "Create or join a room"}
+									<span>{prefetchedUrl ? "Joining room" : "Create or join a room"}</span>
 									<input
 										value={roomId}
-										onChange={(e) =>
-											setRoomId(e.target.value)
-										}
+										onChange={(e) => setRoomId(e.target.value)}
 										placeholder="Enter room name to create/join the room"
 										className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2.5 disabled:opacity-50"
 										required
 										disabled={prefetchedUrl}
 									/>
 									{errorMessage && (
-										<div className="mt-3 text-xs text-red-500 font-semibold">
-											{errorMessage}
-										</div>
+										<div className="mt-3 text-xs text-red-500 font-semibold">{errorMessage}</div>
 									)}
 								</label>
 							</div>

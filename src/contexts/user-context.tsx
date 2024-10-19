@@ -1,10 +1,4 @@
-import React, {
-	ReactElement,
-	createContext,
-	useContext,
-	useEffect,
-	useState,
-} from "react";
+import React, { ReactElement, createContext, useContext, useEffect, useState } from "react";
 
 export interface UserType {
 	bingoBoard: any;
@@ -36,11 +30,7 @@ const UserProvider: React.FC<{ children: ReactElement }> = ({ children }) => {
 		console.log(user);
 	}, [user]);
 
-	return (
-		<UserContext.Provider value={{ user, updateUser }}>
-			{children}
-		</UserContext.Provider>
-	);
+	return <UserContext.Provider value={{ user, updateUser }}>{children}</UserContext.Provider>;
 };
 
 export const useUserContext = () => useContext(UserContext);

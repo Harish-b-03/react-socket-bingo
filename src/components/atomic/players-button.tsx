@@ -18,14 +18,9 @@ const PlayersButton = () => {
 			tooltipContent={
 				user ? (
 					<>
-						<span className="text-gray-400">
-							Players in the room
-						</span>
+						<span className="text-gray-400">Players in the room</span>
 						{[...user.roomMates, "you"].map(
-							(mate, idx) =>
-								mate !== user.userName && (
-									<span key={`mate-${idx}`}>{mate}</span>
-								)
+							(mate, idx) => mate !== user.userName && <span key={`mate-${idx}`}>{mate}</span>
 						)}
 					</>
 				) : null
