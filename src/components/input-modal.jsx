@@ -53,9 +53,32 @@ const InputModal = () => {
 	const onSubmit = (e) => {
 		e.preventDefault();
 		e.stopPropagation();
-		if (!(name.trim() && roomId.trim())) return;
+		let userName = name.trim();
+		let roomName = roomId.trim();
 
-		socket.emit("joinRoom", name.trim(), roomId.trim());
+		if (!(userName && roomName)) return;
+
+		const usernameRegex = /^[a-zA-Z0-9_.]{3,15}$/ // checks if the value is 3-15 characters long and contains only alphanumeric characters, underscore and periods
+		const checkAlphanumericCount = /(?=.*[a-zA-Z0-9])/ // checks if the value has atleast one alphanumeric character
+
+    	if(!usernameRegex.test(userName)){
+			setErrorMessage("Username must be 3-15 characters long and contain only alphanumeric characters, underscore and periods")
+			return;
+		}
+		if(!checkAlphanumericCount.test(userName)){
+			setErrorMessage("Username must contain atleast one letter or digit")
+			return;
+		}
+		if(!usernameRegex.test(roomName)){
+			setErrorMessage("Room Name must be 3-15 characters long and contain only alphanumeric characters, underscore and periods")
+			return;
+		}
+		if(!checkAlphanumericCount.test(roomName)){
+			setErrorMessage("Room Name must contain atleast one letter or digit")
+			return;
+		}
+
+		socket.emit("joinRoom", userName, roomName);
 	};
 
 	return (
@@ -64,7 +87,7 @@ const InputModal = () => {
 				showModal ? "opacity-100" : "opacity-0 pointer-events-none"
 			} overflow-y-auto overflow-x-hidden fixed top-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-full ${
 				theme !== "dark" ? "bg-[rgba(0,0,0,0.5)]" : ""
-			} transition-all duration-300`}
+			} transition-all duration-300 ease-in-out`}
 		>
 			<div className="relative p-4 w-full max-w-md max-h-full">
 				<div className="relative bg-white rounded-lg shadow ">
@@ -109,7 +132,7 @@ const InputModal = () => {
 										disabled={prefetchedUrl}
 									/>
 									{errorMessage && (
-										<div className="mt-1 text-xs text-red-500 font-semibold">
+										<div className="mt-3 text-xs text-red-500 font-semibold">
 											{errorMessage}
 										</div>
 									)}
