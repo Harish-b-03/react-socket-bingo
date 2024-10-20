@@ -65,7 +65,7 @@ const addUserToRoom = ({ userId = null, roomId = null }) => {
 
 	if (!rooms.has(roomId)) {
 		// creating a room
-		console.log("creating a room");
+		console.log("creating a room with id - #", roomId);
 
 		rooms.set(roomId, {
 			players: [userId],
@@ -365,13 +365,7 @@ const resetGame = (roomId = null) => {
 	for (let i = 0; i < roomDetails.players.length; i++) {
 		let user = users.get(roomDetails.players[i]);
 		if (user) {
-			console.log(user);
 			users.set(user.userId, {
-				...user,
-				bingoBoard: [],
-				readyToStart: false,
-			});
-			console.log({
 				...user,
 				bingoBoard: [],
 				readyToStart: false,
@@ -406,12 +400,18 @@ const deleteUser = (socketId = null) => {
 		users.delete(user.userId);
 		removeUserFromRoom(user.userId, user.roomId);
 		const playerNames = getPlayersByRoomId(roomId);
+		const roomDetails = rooms.get(user.roomId);
+		let sendWinMessageToOtherPlayer = false; // If a player disconnects and only one player is left, declare that active player as the winner
+		if (roomDetails) {
+			sendWinMessageToOtherPlayer = playerNames.length === 1 && roomDetails.gameStarted;
+		}
 		return {
 			status: 200,
 			success: true,
 			data: {
 				message: `${user.userName} left the room`,
 				playerNames: playerNames,
+				sendWinMessageToOtherPlayer: sendWinMessageToOtherPlayer,
 			},
 		};
 	}

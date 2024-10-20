@@ -96,13 +96,12 @@ socketIO.on("connection", (socket) => {
 	});
 
 	socket.on("iWonMessage", () => {
-		let resRoomId = getRoomIdBySocketId(socket.id);
 		let resUser = getUserBySocketId(socket.id);
-		if (!resRoomId.success || !resUser.success) {
+		if (!resUser.success) {
 			socket.emit("message", "Some error occured");
 			return;
 		}
-		let roomId = resRoomId.data.roomId;
+		let roomId = resUser.data.user.roomId;
 		socket.emit("win", "You Win!");
 		socket.broadcast.to(roomId).emit("win", `${resUser.data.user.userName} won`);
 		const response = resetGame(roomId);
@@ -153,8 +152,15 @@ socketIO.on("connection", (socket) => {
 			console.log(
 				`😭: ${res.data.message}. ${JSON.stringify(res.data.playerNames)} are in the room (#${roomId}) `
 			);
-			socket.broadcast.to(roomId).emit("message", res.data.message);
 			socket.broadcast.to(roomId).emit("updateRoommates", res.data.playerNames);
+			if (res.data.sendWinMessageToOtherPlayer) {
+				socket.broadcast.to(roomId).emit("win", "You Win!");
+				const response = resetGame(roomId);
+				if (response.success) {
+					socket.to(roomId).emit("resetGame");
+				}
+			}
+			socket.broadcast.to(roomId).emit("message", res.data.message);
 		}
 	});
 });
