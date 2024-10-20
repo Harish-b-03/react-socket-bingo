@@ -6,10 +6,12 @@ import InputModal from "./components/input-modal";
 import Topbar from "./components/topbar";
 import { UserType, useUserContext } from "./contexts/user-context";
 import { useThemeContext } from "./contexts/theme-context";
+import { useGameContext } from "./contexts/game-context";
 
 const Home: React.FC = () => {
 	const [connected, setConnected] = useState(false);
 	const { user, updateUser } = useUserContext();
+	const { gameOver } = useGameContext();
 	const { theme, themeVariables } = useThemeContext();
 	const userRef = useRef<UserType | null>();
 	userRef.current = user;
@@ -33,7 +35,7 @@ const Home: React.FC = () => {
 					backdropFilter: "blur(var(--backdrop-blur))",
 					borderRadius: "10px",
 					border: "1px solid var(--border-color)",
-					padding: "60px 40px 40px 40px",
+					padding: gameOver ? "40px" : "60px 40px 40px 40px",
 			  }
 			: {};
 
@@ -72,7 +74,10 @@ const Home: React.FC = () => {
 				style={{ ...posterThemedStyles, ...themeVariables }}
 			>
 				{user && (
-					<div className="flex flex-col bg-themed-boardBg justify-center items-center" style={themedStyles}>
+					<div
+						className="flex flex-col bg-themed-boardBg justify-center items-center transition-all duration-300"
+						style={themedStyles}
+					>
 						<Topbar />
 						<BingoBoard />
 					</div>
