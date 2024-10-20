@@ -2,10 +2,10 @@ import { socket } from "../socket";
 import ShuffleButton from "./atomic/shuffle-button";
 import ShareButton from "./atomic/share-button";
 import PlayersButton from "./atomic/players-button";
-import SettingsButton from "./atomic/settings-button";
 import { useGameContext } from "../contexts/game-context";
 import { useUserContext } from "../contexts/user-context";
 import { RWebShare } from "react-web-share";
+import AboutButton from "./atomic/about-button";
 
 const StatusBar = () => {
 	const { gameStarted, gameOver, myTurn, statusMessage, updateShuffledData } = useGameContext();
@@ -90,7 +90,7 @@ const StatusBar = () => {
 				</button>
 			)}
 			{!gameStarted && !isUserReady && <ShareButton />}
-			{!gameStarted && !isUserReady && <SettingsButton />}
+			{!gameStarted && !isUserReady && <AboutButton />}
 		</div>
 	);
 };

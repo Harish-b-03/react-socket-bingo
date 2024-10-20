@@ -8,12 +8,14 @@ interface GameContextType {
 	statusMessage: string; // this state variable is used to store turn message, like "Your turn", "Player1's turn", and win message like "You win" and "You Lost"
 	lastChecked: number | null;
 	gameOver: boolean; // we can't use gameStarted variable to check whether the game is over or not, as we have many game status like "player not ready and game not started". "player ready", "game started". So, using this variable.
+	showAboutContent: boolean;
 	updateShuffledData: () => void;
 	updateGameStarted: (val: boolean) => void;
 	updateMyTurn: (val: boolean) => void;
 	updateStatusMessage: (val: string) => void;
 	updateLastChecked: (val: number) => void;
 	updateGameOver: (val: boolean) => void;
+	updateShowAboutContent: (val: boolean) => void;
 	resetGame: () => void;
 }
 
@@ -24,12 +26,14 @@ const initialGameState: GameContextType = {
 	statusMessage: "",
 	lastChecked: null,
 	gameOver: false,
+	showAboutContent: false,
 	updateShuffledData: () => {},
 	updateGameOver: () => {},
 	updateGameStarted: () => {},
 	updateMyTurn: () => {},
 	updateStatusMessage: () => {},
 	updateLastChecked: () => {},
+	updateShowAboutContent: () => {},
 	resetGame: () => {},
 };
 
@@ -42,6 +46,7 @@ export const GameStateProvider: React.FC<{ children: ReactElement }> = ({ childr
 	const [myTurn, setMyTurn] = useState<boolean>(false);
 	const [statusMessage, setStatusMessage] = useState<string>(""); // this state variable is used to store turn message, like "Your turn", "Player1's turn", and win message like "You win" and "You Lost"
 	const [gameOver, setGameOver] = useState<boolean>(false); // we can't use gameStarted variable to check whether the game is over or not, as we have many game status like "player not ready and game not started". "player ready", "game started". So, using this variable.
+	const [showAboutContent, setShowAboutContent] = useState<boolean>(false);
 
 	const updateLastChecked = (value: number) => setLastChecked(value);
 	const updateShuffledData = () => setShuffledData(shuffle());
@@ -49,6 +54,7 @@ export const GameStateProvider: React.FC<{ children: ReactElement }> = ({ childr
 	const updateMyTurn = (value: boolean) => setMyTurn(value);
 	const updateStatusMessage = (value: string) => setStatusMessage(value);
 	const updateGameOver = (value: boolean) => setGameOver(value);
+	const updateShowAboutContent = (value: boolean) => setShowAboutContent(value);
 
 	const resetGame = () => {
 		setGameStarted(false);
@@ -56,7 +62,6 @@ export const GameStateProvider: React.FC<{ children: ReactElement }> = ({ childr
 		setMyTurn(false);
 		setStatusMessage("");
 		setGameOver(false);
-		console.log("resetting game ");
 	};
 
 	return (
@@ -68,12 +73,14 @@ export const GameStateProvider: React.FC<{ children: ReactElement }> = ({ childr
 				myTurn,
 				statusMessage,
 				gameOver,
+				showAboutContent,
 				updateLastChecked,
 				updateShuffledData,
 				updateGameStarted,
 				updateMyTurn,
 				updateStatusMessage,
 				updateGameOver,
+				updateShowAboutContent,
 				resetGame,
 			}}
 		>
