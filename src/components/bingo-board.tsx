@@ -184,13 +184,13 @@ const BingoBoard = () => {
 			gameResetTimeoutRef.current && clearTimeout(gameResetTimeoutRef.current);
 			gameResetTimeoutRef.current = null;
 		};
-	}, []);
+	}, [gameStarted, user]);
 
 	useEffect(() => {
 		if (lastChecked === null || !socket.connected) return;
 
 		checkIfWon(lastChecked);
-	}, [marked]);
+	}, [marked, lastChecked]);
 
 	const mark = (index: number, markRequestFromServer = false) => {
 		if (!socket.connected) return;

@@ -250,8 +250,8 @@ const startGame = (socketId = null) => {
 			};
 		}
 
-		roomDetails.players.forEach((player) => {
-			let userId = player;
+		for (let i = 0; i < roomDetails.players.length; i++) {
+			let userId = roomDetails.players[i];
 
 			if (!users.get(userId).readyToStart) {
 				return {
@@ -261,7 +261,7 @@ const startGame = (socketId = null) => {
 					errorMessage: "All players are not ready",
 				};
 			}
-		});
+		}
 
 		rooms.set(roomId, { ...roomDetails, gameStarted: true });
 
@@ -362,17 +362,23 @@ const resetGame = (roomId = null) => {
 	let roomDetails = rooms.get(roomId);
 	let players = [];
 
-	roomDetails.players.forEach((player) => {
-		let user = users.get(player);
+	for (let i = 0; i < roomDetails.players.length; i++) {
+		let user = users.get(roomDetails.players[i]);
 		if (user) {
+			console.log(user);
 			users.set(user.userId, {
+				...user,
+				bingoBoard: [],
+				readyToStart: false,
+			});
+			console.log({
 				...user,
 				bingoBoard: [],
 				readyToStart: false,
 			});
 			players.push(user.userId);
 		}
-	});
+	}
 
 	rooms.set(roomId, {
 		players: players,
